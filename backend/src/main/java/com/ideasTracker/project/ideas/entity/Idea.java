@@ -1,9 +1,12 @@
 package com.ideasTracker.project.ideas.entity;
 
+import com.ideasTracker.project.enums.Status;
+import com.ideasTracker.project.users.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.time.Instant;
-import com.ideasTracker.project.enums.Status;
+
 @Entity
 @Table(name = "ideas")
 @Getter
@@ -31,8 +34,9 @@ public class Idea {
     @Column(nullable = false)
     private Status status;
 
-    @Column(name = "created_by")
-    private Long createdBy; // TEMP
+    @ManyToOne
+    @JoinColumn(name = "created_by")
+    private User createdBy;
 
     @Column(name = "created_at")
     private Instant createdAt;
@@ -44,7 +48,7 @@ public class Idea {
     protected void onCreate() {
         createdAt = Instant.now();
         updatedAt = Instant.now();
-        status = status.OPEN;
+        status = Status.OPEN;
     }
 
     @PreUpdate

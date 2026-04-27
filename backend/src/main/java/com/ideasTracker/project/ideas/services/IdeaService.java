@@ -7,6 +7,8 @@ import com.ideasTracker.project.ideas.dto.IdeaResponse;
 import com.ideasTracker.project.ideas.entity.Idea;
 import com.ideasTracker.project.ideas.mapper.IdeaMapper;
 import com.ideasTracker.project.ideas.repository.IdeaRepository;
+import com.ideasTracker.project.users.entity.User;
+import com.ideasTracker.project.users.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,16 +17,19 @@ import org.springframework.data.domain.Pageable;
 public class IdeaService {
 
     private final IdeaRepository ideaRepository;
+    private final UserRepository userRepository;
     private final IdeaMapper mapper;
 
-    public IdeaService(IdeaRepository ideaRepository, IdeaMapper mapper) {
+    public IdeaService(IdeaRepository ideaRepository, UserRepository userRepository, IdeaMapper mapper) {
         this.ideaRepository = ideaRepository;
+        this.userRepository = userRepository;
         this.mapper = mapper;
     }
 
     public IdeaResponse createIdea(IdeaCreateRequest req) {
         Idea idea = mapper.toEntity(req);
-        idea.setStatus(Status.OPEN);
+//        User user = userRepository.findById(1L)
+//                .orElseThrow(() -> new RuntimeException("User not found"));
         return mapper.toResponse(ideaRepository.save(idea));
     }
 
@@ -78,7 +83,7 @@ public class IdeaService {
         return mapper.toResponse(ideaRepository.save(idea));
     }
 
-    //update done by system/admin only to update the status!
+    //update done by reviewer/admin only to update the status!
     public IdeaResponse updateStatus(Long id, Status status) {
         Idea idea = ideaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Idea not found"));

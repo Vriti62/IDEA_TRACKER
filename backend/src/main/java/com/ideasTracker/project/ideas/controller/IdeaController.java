@@ -53,7 +53,8 @@ public class IdeaController {
     ) {
         return ResponseEntity.ok(ideaService.updateIdea(id, request));
     }
-    //admin/system only endpoint
+
+    //admin/reviewer only endpoint
     @PatchMapping("/{id}/status")
     public ResponseEntity<IdeaResponse> updateStatus(
             @PathVariable Long id,
