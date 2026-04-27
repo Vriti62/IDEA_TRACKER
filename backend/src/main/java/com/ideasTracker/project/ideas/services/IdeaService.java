@@ -74,14 +74,19 @@ public class IdeaService {
             idea.setPotentialSolution(req.getPotentialSolution());
         }
 
-        if (req.getStatus() != null) {
-            idea.setStatus(req.getStatus());
-        }
-
 
         return mapper.toResponse(ideaRepository.save(idea));
     }
 
+    //update done by system/admin only to update the status!
+    public IdeaResponse updateStatus(Long id, Status status) {
+        Idea idea = ideaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Idea not found"));
+
+        idea.setStatus(status);
+
+        return mapper.toResponse(ideaRepository.save(idea));
+    }
     public void deleteIdea(Long id) {
         ideaRepository.deleteById(id);
     }

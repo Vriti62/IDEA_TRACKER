@@ -20,11 +20,24 @@ export default function IdeaList() {
       }
 
       const res = await api.get(url);
-      setIdeas(res.data.content); // because of Pageable
+      setIdeas(res.data.content);
     } catch (err) {
       console.error("Error fetching ideas:", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  //Status update function
+  const updateStatus = async (id, newStatus) => {
+    try {
+      await api.patch(`/ideas/${id}/status`, {
+        status: newStatus,
+      });
+
+      fetchIdeas(); // refresh after update
+    } catch (err) {
+      console.error("Error updating status:", err);
     }
   };
 
@@ -33,7 +46,7 @@ export default function IdeaList() {
 
       <h2>All Ideas</h2>
 
-      {/* 🔥 Status Filter */}
+      {/* FILTER */}
       <div style={{ marginBottom: 20 }}>
         <label>Status Filter: </label>
         <select
@@ -48,12 +61,10 @@ export default function IdeaList() {
         </select>
       </div>
 
-      {/* 🔄 Loading */}
       {loading && <p>Loading ideas...</p>}
-
-      {/* 📦 Idea List */}
       {!loading && ideas.length === 0 && <p>No ideas found.</p>}
 
+      {/* IDEA LIST */}
       {ideas.map((idea) => (
         <div
           key={idea.id}
@@ -65,11 +76,26 @@ export default function IdeaList() {
           }}
         >
           <h3>{idea.title}</h3>
+
           <p><strong>Problem:</strong> {idea.problemStatement}</p>
+
           {idea.potentialSolution && (
             <p><strong>Solution:</strong> {idea.potentialSolution}</p>
           )}
-          <p><strong>Status:</strong> {idea.status}</p>
+
+          {/* STATUS DROPDOWN */}
+          <div style={{ marginTop: 10 }}>
+            <label><strong>Status: </strong></label>
+            <select
+              value={idea.status}
+              onChange={(e) => updateStatus(idea.id, e.target.value)}
+              style={{ padding: 6, borderRadius: 6, marginLeft: 10 }}
+            >
+              <option value="OPEN">OPEN</option>
+              <option value="UNDER_REVIEW">UNDER_REVIEW</option>
+              <option value="ACCEPTED">ACCEPTED</option>
+            </select>
+          </div>
         </div>
       ))}
     </div>

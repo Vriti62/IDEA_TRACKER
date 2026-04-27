@@ -14,6 +14,5 @@ public class IdeaUpdateRequest {
     private String title;
     private String problemStatement;
     private String potentialSolution;
-    private Status status;
 
 }

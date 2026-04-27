@@ -3,6 +3,7 @@ package com.ideasTracker.project.ideas.controller;
 import com.ideasTracker.project.ideas.dto.IdeaCreateRequest;
 import com.ideasTracker.project.ideas.dto.IdeaResponse;
 import com.ideasTracker.project.ideas.dto.IdeaUpdateRequest;
+import com.ideasTracker.project.ideas.dto.IdeaUpdateRequestStatus;
 import com.ideasTracker.project.ideas.services.IdeaService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -52,6 +53,17 @@ public class IdeaController {
     ) {
         return ResponseEntity.ok(ideaService.updateIdea(id, request));
     }
+    //admin/system only endpoint
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<IdeaResponse> updateStatus(
+            @PathVariable Long id,
+            @RequestBody IdeaUpdateRequestStatus req
+    ) {
+        return ResponseEntity.ok(
+                ideaService.updateStatus(id, req.getStatus())
+        );
+    }
+
 //
 //    @DeleteMapping("/{id}")
 //    public ResponseEntity<Void> delete(@PathVariable Long id) {
