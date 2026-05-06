@@ -14,7 +14,7 @@ public class AIService {
     @Value("${groq.api.key}")
     private String API_KEY;
 
-    public String analyzeIdea(String ideaText) {
+    public String analyzeIdea(String title, String solution, String problem ) {
 
         try {
             String url = "https://api.groq.com/openai/v1/chat/completions";
@@ -25,8 +25,20 @@ public class AIService {
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.setBearerAuth(API_KEY);
 
-            String prompt = "Analyze this idea:\n" + ideaText +
-                    "\nGive:\n1. Summary\n2. Score out of 10\n3. One improvement";
+            String prompt =
+                    "You are an AI assistant helping reviewers evaluate innovation ideas in an enterprise idea management system.\n\n" +
+                            "Evaluate the following idea:\n\n" +
+                            "Title: " + title + "\n" +
+                            "Problem: " + problem + "\n" +
+                            "Proposed Solution: " + solution + "\n\n" +
+                            "Review the idea specifically on:\n" +
+                            "1. Clarity of problem definition\n" +
+                            "2. Feasibility of the solution\n" +
+                            "3. Innovation and business value\n\n" +
+                            "Return your response in this format:\n" +
+                            "- Summary (2–3 lines)\n" +
+                            "- Score out of 10 with justification\n" +
+                            "- One concrete, actionable improvement";;
 
             Map<String, Object> requestBody = Map.of(
                     "model", "llama-3.1-8b-instant",
@@ -54,9 +66,9 @@ public class AIService {
             return message.get("content").toString();
 
         } catch (Exception e) {
-            System.out.println("🔥 AI ERROR START 🔥");
+            System.out.println("AI ERROR START");
             e.printStackTrace();
-            System.out.println("🔥 AI ERROR END 🔥");
+            System.out.println("AI ERROR END");
 
             return "AI ERROR: " + e.getMessage();
         }

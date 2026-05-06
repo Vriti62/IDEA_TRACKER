@@ -58,4 +58,8 @@ public class Idea {
     protected void onUpdate() {
         updatedAt = Instant.now();
     }
+
+    public String setPotentialSolution() {
+        return this.potentialSolution = potentialSolution;
+    }
 }

@@ -20,6 +20,7 @@ public class IdeaResponse {
     private String potentialSolution;
     private Status status;
     private String aiSummary;
+    private String createdByName;
     private Instant createdAt;
     private Instant updatedAt;
 }

@@ -6,6 +6,7 @@ import com.ideasTracker.project.ideas.dto.IdeaUpdateRequest;
 import com.ideasTracker.project.ideas.dto.IdeaUpdateRequestStatus;
 import com.ideasTracker.project.ideas.services.IdeaService;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.data.domain.Page;
@@ -26,6 +27,7 @@ public class IdeaController {
         this.ideaService = ideaService;
     }
 
+    @PreAuthorize("hasRole('User')")
     @PostMapping
     public ResponseEntity<IdeaResponse> createIdea(@Valid @RequestBody IdeaCreateRequest req) {
         IdeaResponse response = ideaService.createIdea(req);
@@ -33,6 +35,7 @@ public class IdeaController {
                 .status(HttpStatus.CREATED)
                 .body(response);
     }
+
 
     @GetMapping
     public ResponseEntity<Page<IdeaResponse>> getAll(
@@ -49,6 +52,7 @@ public class IdeaController {
         return ResponseEntity.ok(ideaService.getIdeaById(id));
     }
 
+    @PreAuthorize("hasRole('User')")
     @PutMapping("/{id}")
     public ResponseEntity<IdeaResponse> update(
             @PathVariable Long id,
@@ -57,6 +61,7 @@ public class IdeaController {
         return ResponseEntity.ok(ideaService.updateIdea(id, request));
     }
 
+    @PreAuthorize("hasRole('Admin')")
     //admin/reviewer only endpoint
     @PatchMapping("/{id}/status")
     public ResponseEntity<IdeaResponse> updateStatus(
@@ -68,6 +73,7 @@ public class IdeaController {
         );
     }
 
+    @PreAuthorize("hasRole('Reviewer')")
     @PostMapping("/{id}/analyze")
     public ResponseEntity<IdeaResponse> analyzeIdea(@PathVariable Long id) {
         System.out.println("🔥 CONTROLLER HIT with id: " + id);

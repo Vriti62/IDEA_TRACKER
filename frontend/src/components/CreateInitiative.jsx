@@ -14,7 +14,7 @@ export default function CreateInitiative() {
       setTitle("");
       setDescription("");
     } catch (err) {
-      setMessage("Failed to create initiative");
+      setMessage("Failed to create initiative", err);
     }
   };
 
@@ -62,7 +62,7 @@ const styles = {
     minHeight: "70vh",
   },
   card: {
-    background: "#111827",
+    background: "#dbe0ec",
     padding: "30px",
     borderRadius: "16px",
     width: "420px",
@@ -83,14 +83,14 @@ const styles = {
     padding: "10px",
     borderRadius: "8px",
     border: "1px solid #374151",
-    background: "#020617",
+    background: "#4f5678",
     color: "white",
   },
   textarea: {
     padding: "10px",
     borderRadius: "8px",
     border: "1px solid #374151",
-    background: "#020617",
+    background: "#7f89ba",
     color: "white",
     resize: "none",
   },
@@ -99,7 +99,7 @@ const styles = {
     padding: "12px",
     borderRadius: "10px",
     border: "none",
-    background: "#2563eb",
+    background: "#897e9c",
     color: "white",
     fontWeight: "600",
     cursor: "pointer",

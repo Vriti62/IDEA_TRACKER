@@ -7,4 +7,13 @@ const api = axios.create({
     },
 });
 
+// Add request interceptor to include auth header
+api.interceptors.request.use((config) => {
+    const auth = localStorage.getItem("auth");
+    if (auth) {
+        config.headers.Authorization = `Basic ${auth}`;
+    }
+    return config;
+});
+
 export default api;

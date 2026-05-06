@@ -105,6 +105,8 @@ public class IdeaService {
 
         try {
             String aiResult = aiService.analyzeIdea(
+                    idea.getTitle(),
+                    idea.setPotentialSolution(),
                     idea.getProblemStatement()
             );
 

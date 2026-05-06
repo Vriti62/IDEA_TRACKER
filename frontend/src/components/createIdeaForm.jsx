@@ -53,34 +53,46 @@ export default function CreateIdeaForm() {
     };
 
     return (
-        <div style={{ maxWidth: 640, margin: "40px auto", fontFamily: "system-ui" }}>
-            <h2>Create Idea</h2>
+        <div className="form-container">
+            <h2 style={{ textAlign: 'center', marginBottom: '2rem', color: 'var(--text-h)' }}>Create New Idea</h2>
 
-            <form onSubmit={handleSubmit} style={{ display: "grid", gap: 12 }}>
-                <input
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    placeholder="Title"
-                />
+            <form onSubmit={handleSubmit} style={{ display: "grid", gap: "1.5rem" }}>
+                <div className="form-group">
+                    <label>Title *</label>
+                    <input
+                        type="text"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        placeholder="Enter a catchy title for your idea"
+                        required
+                    />
+                </div>
 
-                <textarea
-                    value={problemStatement}
-                    onChange={(e) => setProblemStatement(e.target.value)}
-                    placeholder="Problem Statement"
-                />
+                <div className="form-group">
+                    <label>Problem Statement *</label>
+                    <textarea
+                        value={problemStatement}
+                        onChange={(e) => setProblemStatement(e.target.value)}
+                        placeholder="Describe the problem your idea solves"
+                        required
+                    />
+                </div>
 
-                <textarea
-                    value={potentialSolution}
-                    onChange={(e) => setPotentialSolution(e.target.value)}
-                    placeholder="Solution (optional)"
-                />
+                <div className="form-group">
+                    <label>Potential Solution (optional)</label>
+                    <textarea
+                        value={potentialSolution}
+                        onChange={(e) => setPotentialSolution(e.target.value)}
+                        placeholder="Describe how you would solve this problem"
+                    />
+                </div>
 
-                <button type="submit" disabled={loading}>
+                <button type="submit" disabled={loading} className="btn-primary" style={{ width: '100%', padding: '1rem' }}>
                     {loading ? "Submitting..." : "Submit Idea"}
                 </button>
 
-                {successMsg && <p style={{ color: "green" }}>{successMsg}</p>}
-                {errorMsg && <p style={{ color: "red" }}>{errorMsg}</p>}
+                {successMsg && <p style={{ color: "#28a745", textAlign: "center", marginTop: "1rem" }}>{successMsg}</p>}
+                {errorMsg && <p style={{ color: "#dc3545", textAlign: "center", marginTop: "1rem" }}>{errorMsg}</p>}
             </form>
         </div>
     );

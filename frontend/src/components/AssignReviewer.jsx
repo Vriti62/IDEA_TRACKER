@@ -16,7 +16,7 @@ export default function AssignReviewers() {
       setInitiativeId("");
       setReviewerIds("");
     } catch (err) {
-      setMessage("Failed to assign reviewers");
+      setMessage("Failed to assign reviewers", err);
     }
   };
 
@@ -63,7 +63,7 @@ const styles = {
     minHeight: "70vh",
   },
   card: {
-    background: "#111827",
+    background: "#e3e9f6",
     padding: "30px",
     borderRadius: "16px",
     width: "400px",
@@ -84,7 +84,7 @@ const styles = {
     padding: "10px",
     borderRadius: "8px",
     border: "1px solid #374151",
-    background: "#020617",
+    background: "#7c8ccd",
     color: "white",
   },
   button: {
@@ -92,7 +92,7 @@ const styles = {
     padding: "12px",
     borderRadius: "10px",
     border: "none",
-    background: "#2563eb",
+    background: "#897e9c",
     color: "white",
     fontWeight: "600",
     cursor: "pointer",

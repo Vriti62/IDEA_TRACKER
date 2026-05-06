@@ -21,7 +21,7 @@ public class InitiativeService {
         this.userRepository = userRepository;
     }
 
-    // ADMIN creates initiative
+    // admin creates initiative
     public Initiative createInitiative(String title, String description) {
         Initiative initiative = Initiative.builder()
                 .title(title)
@@ -31,7 +31,7 @@ public class InitiativeService {
         return initiativeRepository.save(initiative);
     }
 
-    // ADMIN assigns reviewers
+    // admin assigns reviewers
     public Initiative assignReviewers(Long initiativeId, List<Long> reviewerIds) {
 
         Initiative initiative = initiativeRepository.findById(initiativeId)
@@ -49,7 +49,7 @@ public class InitiativeService {
         return initiativeRepository.save(initiative);
     }
 
-    // REVIEWER view their initiatives
+    // reviewer view their initiatives
     public List<Initiative> getByReviewer(Long userId) {
         return initiativeRepository.findAll().stream()
                 .filter(i -> i.getReviewers().stream()

@@ -17,6 +17,7 @@ public interface IdeaMapper {
     @Mapping(target="updatedAt", ignore=true)
     Idea toEntity(IdeaCreateRequest req);
 
+    @Mapping(target = "createdByName", source = "createdBy.name")
     IdeaResponse toResponse(Idea idea);
 
 }
