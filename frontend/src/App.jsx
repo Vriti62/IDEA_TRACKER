@@ -12,6 +12,10 @@ import Login from "./components/Login";
 import ReviewerDashboard from "./components/ReviewerDashboard";
 import Profile from "./components/Profile";
 import IdeasOverTimeChart from "./components/IdeasOverTime";
+import RequireAuth from "./components/RequireAuth";
+import AdminDashboard from "./components/AdminDashboard";
+import AdminInitiatives from "./components/AdminInitiatives";
+import AdminInitiativeDetail from "./components/AdminInitativeDetail";
 
 import "./App.css";
 
@@ -33,10 +37,10 @@ function App() {
     }
   }, []);
 
-  // fetch ideas for home metrics + graph
   useEffect(() => {
+    if (!user) return;  
     fetchIdeasForHome();
-  }, []);
+  }, [user]);
 
   const fetchIdeasForHome = async () => {
     setLoadingIdeas(true);
@@ -103,13 +107,14 @@ function App() {
   ];
 
   const normalizedRole = user?.role?.toString().toUpperCase();
-  const roleAction = normalizedRole
-    ? normalizedRole === "ADMIN"
-      ? { to: "/assign-reviewers", label: "Assign Reviewers" }
-      : normalizedRole === "REVIEWER"
-      ? { to: "/reviewer-dashboard", label: "Review Dashboard" }
-      : { to: "/my-ideas", label: "My Ideas" }
-    : null;
+const roleAction = normalizedRole
+  ? normalizedRole === "ADMIN"
+    ? { to: "/admin-dashboard", label: "Admin Dashboard" }
+    : normalizedRole === "REVIEWER"
+    ? { to: "/reviewer-dashboard", label: "Review Dashboard" }
+    : { to: "/my-ideas", label: "My Ideas" }
+  : null;
+
 
   // metrics derived from ideas list (instead of hard-coded)
   const metrics = useMemo(() => {
@@ -154,26 +159,36 @@ function App() {
           </nav>
 
           <div className="topbar-actions">
+            {/* user--Submit Idea */}
+          {normalizedRole !== "ADMIN" && normalizedRole !== "REVIEWER" && (
             <Link to="/create-idea" className="btn-primary btn-cta">
               Submit Idea
             </Link>
+          )}
+
+          {/* admin only--Create Initiative */}
+          {normalizedRole === "ADMIN" && (
+            <Link to="/create-initiative" className="btn-primary btn-cta">
+              Create Initiative
+            </Link>
+          )}
 
             {user ? (
               <>
                 {roleAction && (
-                  <Link to={roleAction.to} className="btn-secondary btn-role-action">
+                  <Link to={roleAction.to} className="btn-primary btn-hero">
                     {roleAction.label}
                   </Link>
                 )}
                 <Link to="/profile" className="user-chip user-chip-dark">
                   {user.username} ({user.role})
                 </Link>
-                <button className="btn-secondary btn-logout" onClick={handleLogout}>
+                <button className="btn-primary btn-hero" onClick={handleLogout}>
                   Logout
                 </button>
               </>
             ) : (
-              <Link to="/login" className="btn-secondary btn-cta">
+              <Link to="/login" className="btn-primary btn-hero">
                 Login
               </Link>
             )}
@@ -193,15 +208,30 @@ function App() {
               }
             />
             <Route
-              path="/initiatives"
-              element={
+            path="/initiatives"
+            element={
+              normalizedRole === "ADMIN" ? (
+                <RequireAuth user={user}>
+                  <AdminInitiatives />
+                </RequireAuth>
+              ) : (
                 <Home
                   metrics={metrics}
                   chartData={chartData}
                   loadingIdeas={loadingIdeas}
                 />
-              }
-            />
+              )
+            }
+          />
+
+          <Route
+            path="/initiatives/:id"
+            element={
+              <RequireAuth user={user}>
+                <AdminInitiativeDetail />
+              </RequireAuth>
+            }
+          />
             <Route path="/ideas" element={<IdeaList title="Ideas" userRole={user?.role} />} />
             <Route
               path="/competitions"
@@ -214,7 +244,15 @@ function App() {
               }
             />
 
-            <Route path="/create-idea" element={<CreateIdeaForm />} />
+            <Route
+          path="/create-idea"
+          element={
+            <RequireAuth user={user}>
+              <CreateIdeaForm />
+            </RequireAuth>
+          }
+          />
+
             <Route path="/my-ideas" element={<IdeaList title="My Ideas" userRole={user?.role} />} />
             <Route path="/ideas/:id" element={<IdeaDetail />} />
             <Route path="/profile" element={<Profile />} />
@@ -228,6 +266,14 @@ function App() {
             <Route path="/create-initiative" element={<CreateInitiative />} />
             <Route path="/assign-reviewers" element={<AssignReviewers />} />
             <Route path="/reviewer-dashboard" element={<ReviewerDashboard />} />
+            <Route
+              path="/admin-dashboard"
+              element={
+                <RequireAuth user={user}>
+                  <AdminDashboard />
+                </RequireAuth>
+              }
+            />
           </Routes>
         </main>
       </div>
@@ -238,7 +284,7 @@ function App() {
 function Home({ metrics, chartData, loadingIdeas }) {
   return (
     <div className="home-frame">
-      <section className="hero hero-dark">
+      <section className="hero-dark">
         <div className="hero-copy">
           <span className="eyebrow">Turn ideas into action.</span>
           <h1>Manage initiatives, run idea challenges, and drive innovation — all in one place.</h1>
@@ -253,6 +299,7 @@ function Home({ metrics, chartData, loadingIdeas }) {
             <Link to="/create-idea" className="btn-primary btn-hero">
               Submit Idea
             </Link>
+            
           </div>
         </div>
 
@@ -281,10 +328,9 @@ function Home({ metrics, chartData, loadingIdeas }) {
             </div>
           </div>
 
-          {/* ✅ REAL GRAPH like the picture */}
-          <div style={{ marginTop: 14 }}>
+          <div className="chart-panel">
             {loadingIdeas ? (
-              <p style={{ color: "#9ca3af", margin: 0 }}>Loading chart…</p>
+              <p className="chart-loading">Loading chart…</p>
             ) : (
               <IdeasOverTimeChart data={chartData} />
             )}

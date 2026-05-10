@@ -13,7 +13,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
-
 @Configuration
 @EnableMethodSecurity
 public class SecurityConfig {
@@ -21,22 +20,43 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
-                .cors(Customizer.withDefaults()) // Enable CORS
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.GET, "/api/ideas/**").permitAll()
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .anyRequest().authenticated()
-                )
-                .httpBasic(Customizer.withDefaults()); // simple for now
+            .csrf(csrf -> csrf.disable())
+            .cors(Customizer.withDefaults())
+.authorizeHttpRequests(auth -> auth
+
+    //  Public
+    .requestMatchers("/api/auth/**").permitAll()
+    .requestMatchers(HttpMethod.GET, "/api/ideas/**").permitAll()
+
+    //  ADMIN initiative views
+    .requestMatchers(HttpMethod.GET, "/api/initiatives/**").hasRole("ADMIN")
+    .requestMatchers(HttpMethod.POST, "/api/initiatives/**").hasRole("ADMIN")
+    .requestMatchers(HttpMethod.PATCH, "/api/initiatives/**").hasRole("ADMIN")
+
+    //  Idea actions
+    .requestMatchers(HttpMethod.POST, "/api/ideas").hasRole("USER")
+    .requestMatchers(HttpMethod.PATCH, "/api/ideas/**").hasRole("ADMIN")
+    .requestMatchers(HttpMethod.POST, "/api/ideas/*/analyze").hasRole("REVIEWER")
+
+    .anyRequest().authenticated()
+)
+            .httpBasic(Customizer.withDefaults());
 
         return http.build();
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(HttpSecurity http, UserDetailsService userDetailsService) throws Exception {
-        AuthenticationManagerBuilder builder = http.getSharedObject(AuthenticationManagerBuilder.class);
-        builder.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
+    public AuthenticationManager authenticationManager(
+            HttpSecurity http,
+            UserDetailsService userDetailsService
+    ) throws Exception {
+        AuthenticationManagerBuilder builder =
+                http.getSharedObject(AuthenticationManagerBuilder.class);
+
+        builder
+            .userDetailsService(userDetailsService)
+            .passwordEncoder(passwordEncoder());
+
         return builder.build();
     }
 
@@ -44,6 +64,4 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
 }
-

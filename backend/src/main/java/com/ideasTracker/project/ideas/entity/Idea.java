@@ -1,5 +1,6 @@
 package com.ideasTracker.project.ideas.entity;
 
+import com.ideasTracker.project.Initiative.entity.Initiative;
 import com.ideasTracker.project.enums.Status;
 import com.ideasTracker.project.users.entity.User;
 import jakarta.persistence.*;
@@ -33,6 +34,10 @@ public class Idea {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Status status;
+    
+    @ManyToOne
+    @JoinColumn(name = "initiative_id")
+    private Initiative initiative;
 
     @ManyToOne
     @JoinColumn(name = "created_by")

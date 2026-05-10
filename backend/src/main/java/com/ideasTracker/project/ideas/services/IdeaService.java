@@ -10,6 +10,9 @@ import com.ideasTracker.project.ideas.mapper.IdeaMapper;
 import com.ideasTracker.project.ideas.repository.IdeaRepository;
 import com.ideasTracker.project.users.repository.UserRepository;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -119,4 +122,12 @@ public class IdeaService {
 
         return mapper.toResponse(ideaRepository.save(idea));
     }
+
+    public List<IdeaResponse> getIdeasByInitiative(Long initiativeId) {
+        return ideaRepository.findByInitiativeId(initiativeId)
+                .stream()
+                .toList();
+    }
+
+
 }

@@ -37,8 +37,7 @@ public class AIService {
                             "3. Innovation and business value\n\n" +
                             "Return your response in this format:\n" +
                             "- Summary (2–3 lines)\n" +
-                            "- Score out of 10 with justification\n" +
-                            "- One concrete, actionable improvement";;
+                            "- Four concrete, actionable improvements";
 
             Map<String, Object> requestBody = Map.of(
                     "model", "llama-3.1-8b-instant",

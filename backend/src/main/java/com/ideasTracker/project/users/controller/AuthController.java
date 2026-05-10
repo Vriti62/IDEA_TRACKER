@@ -33,36 +33,31 @@ public class AuthController {
         this.authenticationManager = authenticationManager;
     }
 
-    @PostMapping("/signup")
-    public ResponseEntity<String> signup(@RequestBody UserSignup req) {
-
-        if (userRepository.findByName(req.getName()).isPresent()) {
-            return ResponseEntity.badRequest().body("Username already exists");
-        }
-
-        User user = new User();
-        user.setName(req.getName());
-        user.setEmail(req.getEmail());
-        user.setPassword(passwordEncoder.encode(req.getPassword()));
-        user.setRole(req.getRole() == null ? Role.USER : req.getRole());
-
-        userRepository.save(user);
-
-        return ResponseEntity.ok("User registered successfully");
-    }
-
     @PostMapping("/login")
-    public ResponseEntity<Map<String, String>> login(@RequestBody UserLogin req) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(req.getName(), req.getPassword())
-        );
+    public ResponseEntity<?> login(@RequestBody UserLogin request) {
 
-        User user = userRepository.findByName(req.getName()).orElseThrow();
+        Authentication authentication =
+            authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                    request.getName(),
+                    request.getPassword()
+                )
+            );
 
-        return ResponseEntity.ok(Map.of(
-                "name", user.getName(),
+        // This is Spring Security user
+        org.springframework.security.core.userdetails.User springUser =
+                (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
+
+        // Fetch your actual User entity
+        User user = userRepository.findByName(springUser.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        return ResponseEntity.ok(
+            Map.of(
+                "username", user.getName(),
                 "role", user.getRole().name()
-        ));
+            )
+        );
     }
 }
 

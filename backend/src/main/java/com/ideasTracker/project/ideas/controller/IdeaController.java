@@ -9,6 +9,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
+
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import jakarta.validation.Valid;
@@ -27,7 +30,15 @@ public class IdeaController {
         this.ideaService = ideaService;
     }
 
-    @PreAuthorize("hasRole('User')")
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/{initiativeId}/ideas")
+    public ResponseEntity<List<IdeaResponse>> getIdeasForInitiative(
+            @PathVariable Long initiativeId
+    ) {
+        return ResponseEntity.ok(ideaService.getIdeasByInitiative(initiativeId));
+    }
+    
+    @PreAuthorize("hasRole('USER')")
     @PostMapping
     public ResponseEntity<IdeaResponse> createIdea(@Valid @RequestBody IdeaCreateRequest req) {
         IdeaResponse response = ideaService.createIdea(req);
@@ -52,7 +63,7 @@ public class IdeaController {
         return ResponseEntity.ok(ideaService.getIdeaById(id));
     }
 
-    @PreAuthorize("hasRole('User')")
+    @PreAuthorize("hasRole('USER')")
     @PutMapping("/{id}")
     public ResponseEntity<IdeaResponse> update(
             @PathVariable Long id,
@@ -61,7 +72,7 @@ public class IdeaController {
         return ResponseEntity.ok(ideaService.updateIdea(id, request));
     }
 
-    @PreAuthorize("hasRole('Admin')")
+    @PreAuthorize("hasRole('ADMIN')")
     //admin/reviewer only endpoint
     @PatchMapping("/{id}/status")
     public ResponseEntity<IdeaResponse> updateStatus(
@@ -73,12 +84,13 @@ public class IdeaController {
         );
     }
 
-    @PreAuthorize("hasRole('Reviewer')")
+    @PreAuthorize("hasRole('REVIEWER')")
     @PostMapping("/{id}/analyze")
     public ResponseEntity<IdeaResponse> analyzeIdea(@PathVariable Long id) {
-        System.out.println("🔥 CONTROLLER HIT with id: " + id);
         return ResponseEntity.ok(ideaService.analyzeIdea(id));
     }
+
+
 
 //
 //    @DeleteMapping("/{id}")

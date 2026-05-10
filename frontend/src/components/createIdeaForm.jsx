@@ -1,99 +1,90 @@
 import { useState } from "react";
-import api from "../api.js";
+import api from "../api";
+import "../App.css";
 
 export default function CreateIdeaForm() {
-    const [title, setTitle] = useState("");
-    const [problemStatement, setProblemStatement] = useState("");
-    const [potentialSolution, setPotentialSolution] = useState("");
+  const [title, setTitle] = useState("");
+  const [problemStatement, setProblemStatement] = useState("");
+  const [potentialSolution, setPotentialSolution] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [successMsg, setSuccessMsg] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
 
-    const [loading, setLoading] = useState(false);
-    const [successMsg, setSuccessMsg] = useState("");
-    const [errorMsg, setErrorMsg] = useState("");
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSuccessMsg("");
+    setErrorMsg("");
 
-    const resetMessages = () => {
-        setSuccessMsg("");
-        setErrorMsg("");
-    };
+    if (!title.trim() || !problemStatement.trim()) {
+      setErrorMsg("Title and Problem Statement are required.");
+      return;
+    }
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        resetMessages();
+    setLoading(true);
+    try {
+      await api.post("/ideas", {
+        title: title.trim(),
+        problemStatement: problemStatement.trim(),
+        potentialSolution: potentialSolution.trim() || null,
+      });
 
-        if (!title.trim() || !problemStatement.trim()) {
-            setErrorMsg("Title and Problem Statement are required.");
-            return;
-        }
+      setSuccessMsg("✅ Idea submitted successfully!");
+      setTitle("");
+      setProblemStatement("");
+      setPotentialSolution("");
+    } catch {
+      setErrorMsg("Something went wrong.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        setLoading(true);
+  return (
+    <div className="login-overlay">
+      <div className="login-glass-card form-glass-large">
+        <h2 className="login-title">Create New Idea</h2>
+        <p className="login-subtitle">
+          Share your idea and help drive innovation.
+        </p>
 
-        try {
-            const payload = {
-                title: title.trim(),
-                problemStatement: problemStatement.trim(),
-                potentialSolution: potentialSolution.trim() || null,
-            };
+        <form onSubmit={handleSubmit}>
+          <div className="login-field">
+            <label>Title *</label>
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Enter a catchy title"
+            />
+          </div>
 
-            const res = await api.post("/ideas", payload);
+          <div className="login-field">
+            <label>Problem Statement *</label>
+            <textarea
+              rows={4}
+              value={problemStatement}
+              onChange={(e) => setProblemStatement(e.target.value)}
+              placeholder="Describe the problem your idea solves"
+            />
+          </div>
 
-            setSuccessMsg(`Idea added! `);
+          <div className="login-field">
+            <label>Potential Solution (optional)</label>
+            <textarea
+              rows={3}
+              value={potentialSolution}
+              onChange={(e) => setPotentialSolution(e.target.value)}
+              placeholder="Describe how you would solve this problem"
+            />
+          </div>
 
-            setTitle("");
-            setProblemStatement("");
-            setPotentialSolution("");
-        } catch (err) {
-            const apiMsg =
-                err?.response?.data?.message ||
-                err?.response?.data?.error ||
-                err?.message ||
-                "Something went wrong.";
-            setErrorMsg(apiMsg);
-        } finally {
-            setLoading(false);
-        }
-    };
+          <button type="submit" className="login-btn" disabled={loading}>
+            {loading ? "Submitting..." : "Submit Idea"}
+          </button>
 
-    return (
-        <div className="form-container">
-            <h2 style={{ textAlign: 'center', marginBottom: '2rem', color: 'var(--text-h)' }}>Create New Idea</h2>
-
-            <form onSubmit={handleSubmit} style={{ display: "grid", gap: "1.5rem" }}>
-                <div className="form-group">
-                    <label>Title *</label>
-                    <input
-                        type="text"
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                        placeholder="Enter a catchy title for your idea"
-                        required
-                    />
-                </div>
-
-                <div className="form-group">
-                    <label>Problem Statement *</label>
-                    <textarea
-                        value={problemStatement}
-                        onChange={(e) => setProblemStatement(e.target.value)}
-                        placeholder="Describe the problem your idea solves"
-                        required
-                    />
-                </div>
-
-                <div className="form-group">
-                    <label>Potential Solution (optional)</label>
-                    <textarea
-                        value={potentialSolution}
-                        onChange={(e) => setPotentialSolution(e.target.value)}
-                        placeholder="Describe how you would solve this problem"
-                    />
-                </div>
-
-                <button type="submit" disabled={loading} className="btn-primary" style={{ width: '100%', padding: '1rem' }}>
-                    {loading ? "Submitting..." : "Submit Idea"}
-                </button>
-
-                {successMsg && <p style={{ color: "#28a745", textAlign: "center", marginTop: "1rem" }}>{successMsg}</p>}
-                {errorMsg && <p style={{ color: "#dc3545", textAlign: "center", marginTop: "1rem" }}>{errorMsg}</p>}
-            </form>
-        </div>
-    );
+          {successMsg && <p className="login-success">{successMsg}</p>}
+          {errorMsg && <p className="login-error">{errorMsg}</p>}
+        </form>
+      </div>
+    </div>
+  );
 }
