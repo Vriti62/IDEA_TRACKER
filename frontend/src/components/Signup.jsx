@@ -23,14 +23,13 @@ export default function Signup() {
 
     try {
       const response = await api.post("/auth/signup", {
-        name: username,
+        username,
         password,
       });
 
       setMessage(response.data || "Signup successful. You can log in now.");
       setUsername("");
       setPassword("");
-      setRole("USER");
     } catch (err) {
       setError(
         err?.response?.data || "Could not sign up. Please try again later."

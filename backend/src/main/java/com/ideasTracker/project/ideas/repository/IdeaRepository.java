@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import com.ideasTracker.project.enums.Status;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 public interface IdeaRepository extends JpaRepository<Idea,Long>{
@@ -16,6 +17,6 @@ public interface IdeaRepository extends JpaRepository<Idea,Long>{
         Page<Idea> findByTitleContainingIgnoreCase(String keyword, Pageable pageable);
         Page<Idea> findByStatusAndTitleContainingIgnoreCase(Status status, String keyword, Pageable pageable);
 
-        Collection<IdeaResponse> findByInitiativeId(Long initiativeId);
+        List<Idea> findByInitiativeId(Long initiativeId);
         
 }

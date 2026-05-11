@@ -24,22 +24,29 @@ public class SecurityConfig {
             .cors(Customizer.withDefaults())
 .authorizeHttpRequests(auth -> auth
 
-    //  Public
+    // Public
     .requestMatchers("/api/auth/**").permitAll()
     .requestMatchers(HttpMethod.GET, "/api/ideas/**").permitAll()
 
-    //  ADMIN initiative views
-    .requestMatchers(HttpMethod.GET, "/api/initiatives/**").hasRole("ADMIN")
+    //  REVIEWER
+    .requestMatchers(HttpMethod.GET, "/api/initiatives/my").hasRole("REVIEWER")
+    .requestMatchers(HttpMethod.GET, "/api/initiatives/*/ideas").hasAnyRole("ADMIN", "REVIEWER")
+    .requestMatchers(HttpMethod.POST, "/api/ideas/*/analyze").hasRole("REVIEWER")
+
+    //  ADMIN
+    .requestMatchers(HttpMethod.GET, "/api/initiatives").hasRole("ADMIN")
     .requestMatchers(HttpMethod.POST, "/api/initiatives/**").hasRole("ADMIN")
     .requestMatchers(HttpMethod.PATCH, "/api/initiatives/**").hasRole("ADMIN")
 
-    //  Idea actions
-    .requestMatchers(HttpMethod.POST, "/api/ideas").hasRole("USER")
-    .requestMatchers(HttpMethod.PATCH, "/api/ideas/**").hasRole("ADMIN")
-    .requestMatchers(HttpMethod.POST, "/api/ideas/*/analyze").hasRole("REVIEWER")
+    
+    .requestMatchers(HttpMethod.GET, "/api/initiatives/**").authenticated()
 
     .anyRequest().authenticated()
 )
+
+
+
+
             .httpBasic(Customizer.withDefaults());
 
         return http.build();

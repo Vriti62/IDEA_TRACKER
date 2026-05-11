@@ -36,7 +36,7 @@ public class Idea {
     private Status status;
     
     @ManyToOne
-    @JoinColumn(name = "initiative_id")
+    @JoinColumn(name = "initiative_id", nullable = false)
     private Initiative initiative;
 
     @ManyToOne

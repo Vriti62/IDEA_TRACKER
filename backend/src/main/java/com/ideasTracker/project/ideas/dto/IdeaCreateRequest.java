@@ -19,5 +19,8 @@ public class IdeaCreateRequest {
     @NotBlank
     private String problemStatement;
     private String potentialSolution;
+    @NotNull
+        private Long initiativeId;
+
 
 }

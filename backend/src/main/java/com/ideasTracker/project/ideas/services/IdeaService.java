@@ -1,5 +1,7 @@
 package com.ideasTracker.project.ideas.services;
 
+import com.ideasTracker.project.Initiative.entity.Initiative;
+import com.ideasTracker.project.Initiative.repository.InitiativeRepository;
 import com.ideasTracker.project.agent.AIService;
 import com.ideasTracker.project.enums.Status;
 import com.ideasTracker.project.ideas.dto.IdeaCreateRequest;
@@ -23,19 +25,28 @@ public class IdeaService {
     private final UserRepository userRepository;
     private final IdeaMapper mapper;
     private final AIService aiService;
+    private final InitiativeRepository initiativeRepository;
 
-    public IdeaService(IdeaRepository ideaRepository, UserRepository userRepository, IdeaMapper mapper,  AIService aiService) {
+    public IdeaService(IdeaRepository ideaRepository, UserRepository userRepository, IdeaMapper mapper,  AIService aiService, InitiativeRepository initiativeRepository) {
         this.ideaRepository = ideaRepository;
         this.userRepository = userRepository;
         this.mapper = mapper;
         this.aiService = aiService;
+        this.initiativeRepository = initiativeRepository;
     }
 
     public IdeaResponse createIdea(IdeaCreateRequest req) {
+
+        Initiative initiative = initiativeRepository.findById(req.getInitiativeId())
+            .orElseThrow(() -> new RuntimeException("Initiative not found"));
+
         Idea idea = mapper.toEntity(req);
-//        User user = userRepository.findById(1L)
-//                .orElseThrow(() -> new RuntimeException("User not found"));
-        return mapper.toResponse(ideaRepository.save(idea));
+        idea.setInitiative(initiative);
+        idea.setStatus(Status.OPEN);
+
+        return mapper.toResponse(
+            ideaRepository.save(idea)
+        );
     }
 
     public Page<IdeaResponse> getAllIdeas(Status status, String keyword, Pageable pageable) {
@@ -109,15 +120,15 @@ public class IdeaService {
         try {
             String aiResult = aiService.analyzeIdea(
                     idea.getTitle(),
-                    idea.setPotentialSolution(),
+                    idea.getPotentialSolution(),  
                     idea.getProblemStatement()
             );
 
             idea.setAiSummary(aiResult);
 
-        }catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
-            throw new RuntimeException(e);
+            throw new RuntimeException("AI analysis failed", e);
         }
 
         return mapper.toResponse(ideaRepository.save(idea));
@@ -126,8 +137,7 @@ public class IdeaService {
     public List<IdeaResponse> getIdeasByInitiative(Long initiativeId) {
         return ideaRepository.findByInitiativeId(initiativeId)
                 .stream()
+                .map(mapper::toResponse)
                 .toList();
     }
-
-
 }

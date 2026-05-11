@@ -19,7 +19,7 @@ export default function Login({ onLogin, title = "Login" }) {
   setLoading(true);
   try {
     const response = await api.post("/auth/login", {
-      name: username,
+      username,
       password,
     });
 

@@ -1,5 +1,7 @@
 package com.ideasTracker.project.Initiative.dto;
 
+import java.time.Instant;
+
 import lombok.*;
 
 @Getter
@@ -12,4 +14,5 @@ public class InitiativeResponse {
     private String title;
     private String description;
     private String status = "ONGOING"; // default status when created
+    private Instant created_at;
 }

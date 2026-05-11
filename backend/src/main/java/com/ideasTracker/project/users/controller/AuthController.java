@@ -33,32 +33,38 @@ public class AuthController {
         this.authenticationManager = authenticationManager;
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody UserLogin request) {
+@PostMapping("/login")
+public ResponseEntity<?> login(@RequestBody UserLogin request) {
 
-        Authentication authentication =
-            authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                    request.getName(),
-                    request.getPassword()
-                )
-            );
+    // 1. Authenticate credentials (Spring handles password check)
+    authenticationManager.authenticate(
+        new UsernamePasswordAuthenticationToken(
+            request.getUsername(),
+            request.getPassword()
+        )
+    );
 
-        // This is Spring Security user
-        org.springframework.security.core.userdetails.User springUser =
-                (org.springframework.security.core.userdetails.User) authentication.getPrincipal();
+    // 2. Fetch your DB user directly
+    User user = userRepository.findByUsername(request.getUsername())
+        .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Fetch your actual User entity
-        User user = userRepository.findByName(springUser.getUsername())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+    // 3. Send what frontend actually needs
+    return ResponseEntity.ok(
+        Map.of(
+            "username", user.getUsername(),
+            "role", user.getRole().name()
+        )
+    );
+}
 
-        return ResponseEntity.ok(
-            Map.of(
-                "username", user.getName(),
-                "role", user.getRole().name()
-            )
-        );
-    }
+    //temp
+    @PostMapping("/debug-hash")
+public ResponseEntity<?> debugHash() {
+    String hash = passwordEncoder.encode("password");
+    boolean matches = passwordEncoder.matches("password", hash);
+    return ResponseEntity.ok(Map.of("hash", hash, "matches", matches));
+}
+
 }
 
 

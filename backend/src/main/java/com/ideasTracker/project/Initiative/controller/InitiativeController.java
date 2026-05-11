@@ -6,25 +6,29 @@ import com.ideasTracker.project.Initiative.repository.InitiativeRepository;
 import com.ideasTracker.project.Initiative.dto.CreateInitiativeRequest;
 import com.ideasTracker.project.Initiative.service.*;
 import com.ideasTracker.project.ideas.dto.IdeaResponse;
+import com.ideasTracker.project.ideas.services.IdeaService;
+import com.ideasTracker.project.users.entity.User;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
-
 @RestController
-@RequestMapping("/initiatives")
+@RequestMapping("/api/initiatives")
 public class InitiativeController {
 
     private final InitiativeService service;
+    private final IdeaService ideaService;
 
-    public InitiativeController(InitiativeService service) {
+    public InitiativeController(InitiativeService service, IdeaService ideaService) {
         this.service = service;
+        this.ideaService = ideaService;
     }
 
-    // admin
+    // admin-- create initiative
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<Initiative> create(@RequestBody CreateInitiativeRequest req) {
@@ -33,38 +37,51 @@ public class InitiativeController {
         );
     }
 
-    // admin
     @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}/assign")
-    public ResponseEntity<Initiative> assign(
+    public ResponseEntity<Void> assign(
             @PathVariable Long id,
-            @RequestBody AssignReviewersRequest req
-    ) {
-        return ResponseEntity.ok(service.assignReviewers(id, req.getReviewerIds()));
+            @RequestBody AssignReviewersRequest req) {
+
+        service.assignReviewers(id, req.getReviewerIds());
+
+        return ResponseEntity.ok().build(); 
     }
 
-    // reviewer's all initiatives
-    @PreAuthorize("hasRole('REVIEWER' && 'ADMIN')")
-    @GetMapping("/reviewer/{userId}")
-    public ResponseEntity<List<Initiative>> getForReviewer(@PathVariable Long userId) {
-        return ResponseEntity.ok(service.getByReviewer(userId));
-    }
-
-    // admin--get all initiatives
+    // admin-- get ALL initiatives (admin dashboard)
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
-    public ResponseEntity<List<Initiative>> getAllInitiatives() {
+    public ResponseEntity<List<Initiative>> getAllInitiativesAdmin() {
         return ResponseEntity.ok(service.getAllInitiatives());
     }
 
-    // admin-- get ideas under an initiative
-    @PreAuthorize("hasRole('ADMIN')")
+    // initiatives for dropdown
+    @GetMapping("/public")
+    public ResponseEntity<List<Initiative>> getPublicInitiatives() {
+        return ResponseEntity.ok(service.getAllInitiatives());
+    }
+
+    // admin-- ideas under an initiative
+    @PreAuthorize("hasRole('ADMIN','REVIEWER')")
     @GetMapping("/{initiativeId}/ideas")
     public ResponseEntity<List<IdeaResponse>> getIdeasForInitiative(
             @PathVariable Long initiativeId
     ) {
         return ResponseEntity.ok(
-            service.getIdeasByInitiative(initiativeId)
+                ideaService.getIdeasByInitiative(initiativeId)
         );
     }
+
+    @PreAuthorize("hasRole('REVIEWER')")
+    @GetMapping("/my")
+    public ResponseEntity<List<Initiative>> getMyInitiatives(
+            @AuthenticationPrincipal org.springframework.security.core.userdetails.UserDetails principal
+    ) {
+        String username = principal.getUsername();
+        return ResponseEntity.ok(
+            service.getByReviewerUsername(username)
+        );
+    }
+
+
 }

@@ -1,6 +1,7 @@
 package com.ideasTracker.project.reviewIdeas.service;
 
 import java.time.Instant;
+import java.util.List;
 
 import org.springframework.stereotype.Service;
 
@@ -49,4 +50,13 @@ public class IdeaReviewService {
 
         return reviewMapper.toResponse(saved);
     }
+
+    
+    public List<ReviewResponse> getReviewsForIdea(Long ideaId) {
+        return reviewRepo.findByIdeaId(ideaId)
+                .stream()
+                .map(reviewMapper::toResponse)
+                .toList();
+    }
+
 }

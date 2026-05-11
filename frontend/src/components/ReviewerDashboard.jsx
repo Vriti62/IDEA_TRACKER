@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import api from "../api";
 import IdeasOverTimeChart from "./IdeasOverTime";
+import ReactMarkdown from "react-markdown";
 
 export default function ReviewerDashboard() {
   const [ideas, setIdeas] = useState([]);
@@ -13,32 +14,48 @@ export default function ReviewerDashboard() {
   const [msgById, setMsgById] = useState({});
   const [reviewsByIdea, setReviewsByIdea] = useState({}); // { [ideaId]: ReviewResponse[] }
 
+  // ✅ AI visibility is controlled ONLY by button click (per idea)
+  const [showAIById, setShowAIById] = useState({}); // { [ideaId]: true/false }
+
   useEffect(() => {
     fetchAssignedIdeas();
   }, []);
 
-  const fetchAssignedIdeas = async () => {
-    setLoading(true);
-    try {
-      const res = await api.get("/reviewer/ideas");
-      const list = Array.isArray(res.data) ? res.data : res.data?.content ?? [];
-      setIdeas(list);
-    } catch (e) {
-      console.error("Failed to load assigned ideas:", e);
-      setIdeas([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+const fetchAssignedIdeas = async () => {
+  setLoading(true);
+  try {
+    const initRes = await api.get("/initiatives/my");
+    const initiatives = Array.isArray(initRes.data) ? initRes.data : [];
+
+    
+    const ideaPromises = initiatives.map((i) =>
+      api.get(`/initiatives/${i.id}/ideas`).then((res) => res.data)
+    );
+
+    const ideasByInitiative = await Promise.all(ideaPromises);
+
+    const allIdeas = ideasByInitiative.flat();
+    setIdeas(allIdeas);
+  } catch (e) {
+    console.error("Failed to load reviewer ideas", e);
+    setIdeas([]);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const analyzeIdea = async (id) => {
     try {
+      setShowAIById((prev) => ({ ...prev, [id]: true }));
+
       await api.post(`/ideas/${id}/analyze`);
-      setMsgById((prev) => ({ ...prev, [id]: "AI analysis complete" }));
+      setMsgById((prev) => ({ ...prev, [id]: "✅ AI analysis complete" }));
+
       await fetchAssignedIdeas(); // refresh so aiSummary updates
     } catch (e) {
       console.error(e);
-      setMsgById((prev) => ({ ...prev, [id]: "AI analysis failed" }));
+      setMsgById((prev) => ({ ...prev, [id]: "❌ AI analysis failed" }));
+      // keep showAIById true so user sees error or "Analyzing..." if you want
     }
   };
 
@@ -47,21 +64,21 @@ export default function ReviewerDashboard() {
     const comment = (commentById[id] || "").trim();
 
     if (!score || score < 1 || score > 10) {
-      setMsgById((prev) => ({ ...prev, [id]: " Score must be between 1 and 10" }));
+      setMsgById((prev) => ({ ...prev, [id]: "❌ Score must be between 1 and 10" }));
       return;
     }
     if (!comment) {
-      setMsgById((prev) => ({ ...prev, [id]: " Comment is required" }));
+      setMsgById((prev) => ({ ...prev, [id]: "❌ Comment is required" }));
       return;
     }
 
     try {
       await api.post(`/ideas/${id}/review`, { score, comment });
-      setMsgById((prev) => ({ ...prev, [id]: "Review submitted" }));
+      setMsgById((prev) => ({ ...prev, [id]: "✅ Review submitted" }));
       await fetchReviews(id);
     } catch (e) {
       console.error(e);
-      setMsgById((prev) => ({ ...prev, [id]: " Review submit failed (auth/role?)" }));
+      setMsgById((prev) => ({ ...prev, [id]: "❌ Review submit failed" }));
     }
   };
 
@@ -77,11 +94,13 @@ export default function ReviewerDashboard() {
   };
 
   const chartData = useMemo(() => {
-    // “Ideas assigned over time” chart based on createdAt if available
     const grouped = ideas.reduce((acc, item) => {
       const createdAt = item.createdAt || item.created_at;
       if (!createdAt) return acc;
-      const label = new Date(createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+      const label = new Date(createdAt).toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+      });
       acc[label] = (acc[label] || 0) + 1;
       return acc;
     }, {});
@@ -102,12 +121,15 @@ export default function ReviewerDashboard() {
           </div>
 
           {loading && <p className="chart-loading">Loading assigned ideas…</p>}
-          {!loading && ideas.length === 0 && <p className="chart-loading">No ideas assigned yet.</p>}
+          {!loading && ideas.length === 0 && (
+            <p className="chart-loading">No ideas assigned yet.</p>
+          )}
 
           {!loading &&
             ideas.map((idea) => {
               const open = expandedId === idea.id;
               const reviews = reviewsByIdea[idea.id] || [];
+              const showAI = !!showAIById[idea.id]; // ✅ per-idea
 
               return (
                 <div key={idea.id} className="idea-card" style={{ marginTop: 14 }}>
@@ -116,86 +138,120 @@ export default function ReviewerDashboard() {
                     onClick={async () => {
                       const next = open ? null : idea.id;
                       setExpandedId(next);
-                      if (!open) await fetchReviews(idea.id);
+
+                      // ✅ optional: reset AI visibility when opening a different idea
+                      if (!open) {
+                        setShowAIById((prev) => ({ ...prev, [idea.id]: false }));
+                        await fetchReviews(idea.id);
+                      }
                     }}
                   >
                     <div className="idea-card-title">
                       <h3 style={{ margin: 0 }}>{idea.title}</h3>
-                      <p style={{ margin: "6px 0 0" }}>{(idea.status || "OPEN").replace("_", " ")}</p>
+                      <p style={{ margin: "6px 0 0" }}>
+                        {(idea.status || "OPEN").replace("_", " ")}
+                      </p>
                     </div>
                     <div className="expand-icon">{open ? "−" : "+"}</div>
                   </div>
 
                   {open && (
                     <div className="idea-card-body">
-                      <p><strong>Problem:</strong> {idea.problemStatement}</p>
-                      {idea.potentialSolution && <p><strong>Solution:</strong> {idea.potentialSolution}</p>}
+                      <p>
+                        <strong>Problem:</strong> {idea.problemStatement}
+                      </p>
+                      {idea.potentialSolution && (
+                        <p>
+                          <strong>Solution:</strong> {idea.potentialSolution}
+                        </p>
+                      )}
 
-                      {/* AI Insight */}
-                      {idea.aiSummary && (
+                      {/* ✅ AI Insight — ONLY when button clicked */}
+                      {showAI && (
                         <div className="ai-summary-card">
-                          <strong>AI Insight:</strong>
-                          <p style={{ marginTop: 8 }}>{idea.aiSummary}</p>
+                          <strong>AI Insight</strong>
+                          <div className="ai-summary-text">
+                            <ReactMarkdown>
+                              {idea.aiSummary || "Analyzing idea…"}
+                            </ReactMarkdown>
+                          </div>
                         </div>
                       )}
 
                       <div className="idea-card-actions">
-                        <button className="btn-primary btn-hero" onClick={() => analyzeIdea(idea.id)}>
-                          Analyze with AI
+                        <button
+                          className="btn-primary btn-hero"
+                          disabled={showAI}
+                          onClick={() => analyzeIdea(idea.id)}
+                        >
+                          {showAI ? "Analyzed" : "Analyze with AI"}
                         </button>
                       </div>
 
                       {/* Review Form */}
-                      <div className="ai-summary-card">
+                      <div className="review-form">
                         <h4 style={{ marginTop: 0 }}>Submit Review</h4>
 
-                        <div className="login-field">
-                          <label>Score (1–10)</label>
-                          <input
-                            type="number"
-                            min="1"
-                            max="10"
-                            value={scoreById[idea.id] || ""}
-                            onChange={(e) =>
-                              setScoreById((prev) => ({ ...prev, [idea.id]: e.target.value }))
-                            }
-                            placeholder="e.g., 8"
-                          />
-                        </div>
+                        <label>Score (1–10)</label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="10"
+                          value={scoreById[idea.id] || ""}
+                          onChange={(e) =>
+                            setScoreById((prev) => ({
+                              ...prev,
+                              [idea.id]: e.target.value,
+                            }))
+                          }
+                          placeholder="e.g., 8"
+                        />
 
-                        <div className="login-field">
-                          <label>Reviewer Comment</label>
-                          <textarea
-                            rows={4}
-                            value={commentById[idea.id] || ""}
-                            onChange={(e) =>
-                              setCommentById((prev) => ({ ...prev, [idea.id]: e.target.value }))
-                            }
-                            placeholder="Write feedback the user/admin can read…"
-                          />
-                        </div>
+                        <label>Reviewer Comment</label>
+                        <textarea
+                          rows={4}
+                          value={commentById[idea.id] || ""}
+                          onChange={(e) =>
+                            setCommentById((prev) => ({
+                              ...prev,
+                              [idea.id]: e.target.value,
+                            }))
+                          }
+                          placeholder="Write feedback the user/admin can read…"
+                        />
 
-                        <button className="btn-primary btn-hero" onClick={() => submitReview(idea.id)}>
+                        <button
+                          className="btn-primary btn-hero"
+                          type="button"
+                          onClick={() => submitReview(idea.id)}
+                        >
                           Submit Review
                         </button>
 
                         {msgById[idea.id] && (
-                          <p className="login-success">
+                          <p className={msgById[idea.id].includes("✅") ? "login-success" : "login-error"}>
                             {msgById[idea.id]}
                           </p>
-                        )} 
+                        )}
                       </div>
 
-                      {/* Existing reviews (visible to reviewer too) */}
+                      {/* Existing Reviews */}
                       <div className="ai-summary-card">
                         <h4 style={{ marginTop: 0 }}>Existing Reviews</h4>
                         {reviews.length === 0 ? (
                           <p style={{ margin: 0 }}>No reviews yet.</p>
                         ) : (
                           reviews.map((r) => (
-                            <div key={r.id} style={{ padding: "10px 0", borderBottom: "1px solid rgba(255,255,255,0.12)" }}>
+                            <div
+                              key={r.id}
+                              style={{
+                                padding: "10px 0",
+                                borderBottom: "1px solid rgba(15,23,42,0.12)",
+                              }}
+                            >
                               <p style={{ margin: 0 }}>
-                                <strong>{r.reviewerName}</strong> — <strong>{r.score}/10</strong>
+                                <strong>{r.reviewerName}</strong> —{" "}
+                                <strong>{r.score}/10</strong>
                               </p>
                               <p style={{ margin: "6px 0 0" }}>{r.comment}</p>
                             </div>
@@ -212,4 +268,3 @@ export default function ReviewerDashboard() {
     </div>
   );
 }
-``

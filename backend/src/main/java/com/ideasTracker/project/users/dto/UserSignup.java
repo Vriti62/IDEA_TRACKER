@@ -9,8 +9,8 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class UserSignup {
-    private String name;
+    private String username;
     private String email;
     private String password;
-    public Role role;
+    public Role role=Role.USER; // default role for new signups
 }

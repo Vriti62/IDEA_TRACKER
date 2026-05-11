@@ -30,7 +30,7 @@ export default function CreateInitiative() {
       setTitle("");
       setDescription("");
     } catch (e) {
-      setErrorMsg("Something went wrong while creating initiative.");
+      setErrorMsg("Something went wrong while creating initiative.", e);
     } finally {
       setLoading(false);
     }

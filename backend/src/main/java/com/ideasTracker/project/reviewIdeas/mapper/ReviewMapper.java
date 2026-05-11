@@ -11,7 +11,7 @@ public class ReviewMapper {
         return ReviewResponse.builder()
                 .id(review.getId())
                 .ideaId(review.getIdea().getId())
-                .reviewerName(review.getReviewer().getName())
+                .reviewerName(review.getReviewer().getUsername())
                 .score(review.getScore())
                 .comment(review.getReviewComment())
                 .reviewedAt(review.getReviewedAt())

@@ -16,6 +16,7 @@ import RequireAuth from "./components/RequireAuth";
 import AdminDashboard from "./components/AdminDashboard";
 import AdminInitiatives from "./components/AdminInitiatives";
 import AdminInitiativeDetail from "./components/AdminInitativeDetail";
+import InitiativesList from "./components/InitiativesList";
 
 import "./App.css";
 
@@ -207,7 +208,7 @@ const roleAction = normalizedRole
                 />
               }
             />
-            <Route
+          <Route
             path="/initiatives"
             element={
               normalizedRole === "ADMIN" ? (
@@ -215,11 +216,9 @@ const roleAction = normalizedRole
                   <AdminInitiatives />
                 </RequireAuth>
               ) : (
-                <Home
-                  metrics={metrics}
-                  chartData={chartData}
-                  loadingIdeas={loadingIdeas}
-                />
+                <RequireAuth user={user}>
+                  <InitiativesList userRole={normalizedRole} />
+                </RequireAuth>
               )
             }
           />

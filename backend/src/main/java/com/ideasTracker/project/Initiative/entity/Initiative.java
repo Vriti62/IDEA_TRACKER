@@ -6,8 +6,11 @@ import com.ideasTracker.project.users.services.UserService;
 import jakarta.persistence.*;
 import lombok.*;
 
-
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 @Entity
 @Table(name = "initiatives")
 @Getter
@@ -23,13 +26,14 @@ public class Initiative {
 
     private String title;
     private String description;
-    private String theme;
 
     @ManyToMany
     @JoinTable(
-            name = "initiative_reviewers",
-            joinColumns = @JoinColumn(name = "initiative_id"),
-            inverseJoinColumns = @JoinColumn(name = "user_id")
+        name = "initiative_reviewers",
+        joinColumns = @JoinColumn(name = "initiative_id"),
+        inverseJoinColumns = @JoinColumn(name = "user_id")
     )
-    private List<User> reviewers;
+    @Builder.Default
+    private List<User> reviewers=new ArrayList<>();
+    private Instant created_at;
 }
