@@ -10,7 +10,6 @@ import lombok.*;
 @Builder
 public class UserSignup {
     private String username;
-    private String email;
     private String password;
     public Role role=Role.USER; // default role for new signups
 }

@@ -8,6 +8,7 @@ export default function CreateInitiative() {
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+  const [excelLoading, setExcelLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -36,6 +37,33 @@ export default function CreateInitiative() {
     }
   };
 
+  //excel
+  const handleInitiativeExcelUpload = async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  setExcelLoading(true);
+  setErrorMsg("");
+  try {
+    const res = await api.post("/initiatives/parse-excel", formData, {
+      headers: { "Content-Type": "multipart/form-data" }
+    });
+
+    const data = res.data;
+
+    // autofill fields
+    setTitle(data.title || "");
+    setDescription(data.description || "");
+  } catch (e) {
+    setErrorMsg("Failed to read Excel file.",e);
+  } finally {
+    setExcelLoading(false);
+  }
+};
+
   return (
     <div className="login-overlay">
       <div className="login-glass-card form-glass-large">
@@ -46,6 +74,16 @@ export default function CreateInitiative() {
 
         <form onSubmit={handleSubmit}>
           <div className="login-field">
+
+            
+          <label>Upload Initiative via Excel (.xlsx)</label>
+            <input
+              type="file"
+              accept=".xlsx"
+              onChange={handleInitiativeExcelUpload}
+            />
+            {excelLoading && <small>Reading Excel…</small>}
+
             <label>Title *</label>
             <input
               value={title}

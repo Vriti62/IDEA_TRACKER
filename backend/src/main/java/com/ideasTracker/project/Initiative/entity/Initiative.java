@@ -36,4 +36,6 @@ public class Initiative {
     @Builder.Default
     private List<User> reviewers=new ArrayList<>();
     private Instant created_at;
+
+    
 }

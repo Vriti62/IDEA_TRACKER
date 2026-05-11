@@ -2,6 +2,7 @@ package com.ideasTracker.project.ideas.entity;
 
 import com.ideasTracker.project.Initiative.entity.Initiative;
 import com.ideasTracker.project.enums.Status;
+import com.ideasTracker.project.ideas.dto.IdeaResponse;
 import com.ideasTracker.project.users.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -67,4 +68,22 @@ public class Idea {
     public String setPotentialSolution() {
         return this.potentialSolution = potentialSolution;
     }
+
+    public static IdeaResponse from(Idea idea) {
+    return IdeaResponse.builder()
+            .id(idea.getId())
+            .title(idea.getTitle())
+            .problemStatement(idea.getProblemStatement())
+            .potentialSolution(idea.getPotentialSolution())
+            .status(idea.getStatus())
+            .aiSummary(idea.getAiSummary())
+            .createdByUsername(
+                    idea.getCreatedBy() != null
+                        ? idea.getCreatedBy().getUsername()
+                        : null
+            )
+            .createdAt(idea.getCreatedAt())   
+            .updatedAt(idea.getUpdatedAt())   
+            .build();
+}
 }

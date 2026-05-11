@@ -54,7 +54,7 @@ const fetchAssignedIdeas = async () => {
     } catch (e) {
       console.error(e);
       setMsgById((prev) => ({ ...prev, [id]: " AI analysis failed" }));
-      // keep showAIById true so user sees error or "Analyzing..." if you want
+      
     }
   };
 
@@ -128,7 +128,7 @@ const fetchAssignedIdeas = async () => {
             ideas.map((idea) => {
               const open = expandedId === idea.id;
               const reviews = reviewsByIdea[idea.id] || [];
-              const showAI = !!showAIById[idea.id]; // ✅ per-idea
+              const showAI = !!showAIById[idea.id]; 
 
               return (
                 <div key={idea.id} className="idea-card" style={{ marginTop: 14 }}>

@@ -12,9 +12,15 @@ import com.ideasTracker.project.ideas.mapper.IdeaMapper;
 import com.ideasTracker.project.ideas.repository.IdeaRepository;
 import com.ideasTracker.project.users.repository.UserRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -140,4 +146,26 @@ public class IdeaService {
                 .map(mapper::toResponse)
                 .toList();
     }
+
+    //excel sheet 
+
+    public Map<String, String> parseIdeaExcel(MultipartFile file) throws Exception {
+        Map<String, String> data = new HashMap<>();
+
+        XSSFWorkbook workbook = new XSSFWorkbook(file.getInputStream());
+        XSSFSheet sheet = workbook.getSheetAt(0);
+
+        Row header = sheet.getRow(0);
+        Row row = sheet.getRow(1); // first data row
+
+        for (int i = 0; i < header.getLastCellNum(); i++) {
+            String key = header.getCell(i).getStringCellValue();
+            String value = row.getCell(i).getStringCellValue();
+            data.put(key, value);
+        }
+
+        workbook.close();
+        return data;
+    }
 }
+

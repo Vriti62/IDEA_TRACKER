@@ -2,11 +2,14 @@ package com.ideasTracker.project.Initiative.service;
 
 import com.ideasTracker.project.Initiative.entity.Initiative;
 import com.ideasTracker.project.Initiative.repository.InitiativeRepository;
+import com.ideasTracker.project.ideas.mapper.*;
+import com.ideasTracker.project.ideas.repository.IdeaRepository;
 import com.ideasTracker.project.enums.Role;
 import com.ideasTracker.project.ideas.dto.IdeaResponse;
 import com.ideasTracker.project.ideas.services.IdeaService;
 import com.ideasTracker.project.users.entity.User;
 import com.ideasTracker.project.users.repository.UserRepository;
+import com.ideasTracker.project.Initiative.service.InitiativeService;
 
 import jakarta.transaction.Transactional;
 
@@ -21,13 +24,16 @@ public class InitiativeService {
 
     private final InitiativeRepository initiativeRepository;
     private final UserRepository userRepository;
+    private final IdeaRepository ideaRepository;
 
     public InitiativeService(
             InitiativeRepository initiativeRepository,
-            UserRepository userRepository
+            UserRepository userRepository,
+            IdeaRepository ideaRepository
     ) {
         this.initiativeRepository = initiativeRepository;
         this.userRepository = userRepository;
+        this.ideaRepository = ideaRepository;
     }
 
     //  ADMIN: create initiative
@@ -87,6 +93,13 @@ public class InitiativeService {
             .anyMatch(r -> r.getId().equals(reviewer.getId())))
         .toList();
 }
+public List<IdeaResponse> getIdeasByInitiative(Long initiativeId) {
+    return ideaRepository.findByInitiativeId(initiativeId)
+            .stream()
+            .map(IdeaResponse::from)
+            .toList();
+}
+
 
 
 }

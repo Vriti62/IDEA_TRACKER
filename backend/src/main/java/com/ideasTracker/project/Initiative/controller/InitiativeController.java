@@ -3,12 +3,12 @@ package com.ideasTracker.project.Initiative.controller;
 import com.ideasTracker.project.Initiative.dto.AssignReviewersRequest;
 import com.ideasTracker.project.Initiative.entity.Initiative;
 import com.ideasTracker.project.Initiative.repository.InitiativeRepository;
+import com.ideasTracker.project.ideas.repository.IdeaRepository;
 import com.ideasTracker.project.Initiative.dto.CreateInitiativeRequest;
 import com.ideasTracker.project.Initiative.service.*;
 import com.ideasTracker.project.ideas.dto.IdeaResponse;
 import com.ideasTracker.project.ideas.services.IdeaService;
 import com.ideasTracker.project.users.entity.User;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -20,20 +20,22 @@ import java.util.Map;
 @RequestMapping("/api/initiatives")
 public class InitiativeController {
 
-    private final InitiativeService service;
-    private final IdeaService ideaService;
+    private final InitiativeService initiativeService;
 
-    public InitiativeController(InitiativeService service, IdeaService ideaService) {
-        this.service = service;
-        this.ideaService = ideaService;
+    public InitiativeController(InitiativeService initiativeService) {
+        this.initiativeService = initiativeService;
     }
 
-    // admin-- create initiative
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
-    public ResponseEntity<Initiative> create(@RequestBody CreateInitiativeRequest req) {
+    public ResponseEntity<Initiative> create(
+            @RequestBody CreateInitiativeRequest req
+    ) {
         return ResponseEntity.ok(
-                service.createInitiative(req.getTitle(), req.getDescription())
+                initiativeService.createInitiative(
+                        req.getTitle(),
+                        req.getDescription()
+                )
         );
     }
 
@@ -41,34 +43,36 @@ public class InitiativeController {
     @PatchMapping("/{id}/assign")
     public ResponseEntity<Void> assign(
             @PathVariable Long id,
-            @RequestBody AssignReviewersRequest req) {
-
-        service.assignReviewers(id, req.getReviewerIds());
-
-        return ResponseEntity.ok().build(); 
+            @RequestBody AssignReviewersRequest req
+    ) {
+        initiativeService.assignReviewers(id, req.getReviewerIds());
+        return ResponseEntity.ok().build();
     }
 
-    // admin-- get ALL initiatives (admin dashboard)
+
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ResponseEntity<List<Initiative>> getAllInitiativesAdmin() {
-        return ResponseEntity.ok(service.getAllInitiatives());
+        return ResponseEntity.ok(
+                initiativeService.getAllInitiatives()
+        );
     }
 
-    // initiatives for dropdown
+
     @GetMapping("/public")
     public ResponseEntity<List<Initiative>> getPublicInitiatives() {
-        return ResponseEntity.ok(service.getAllInitiatives());
+        return ResponseEntity.ok(
+                initiativeService.getAllInitiatives()
+        );
     }
 
-    // admin-- ideas under an initiative
-    @PreAuthorize("hasRole('ADMIN','REVIEWER')")
+    @PreAuthorize("hasAnyRole('ADMIN','REVIEWER')")
     @GetMapping("/{initiativeId}/ideas")
     public ResponseEntity<List<IdeaResponse>> getIdeasForInitiative(
             @PathVariable Long initiativeId
     ) {
         return ResponseEntity.ok(
-                ideaService.getIdeasByInitiative(initiativeId)
+                initiativeService.getIdeasByInitiative(initiativeId)
         );
     }
 
@@ -77,11 +81,10 @@ public class InitiativeController {
     public ResponseEntity<List<Initiative>> getMyInitiatives(
             @AuthenticationPrincipal org.springframework.security.core.userdetails.UserDetails principal
     ) {
-        String username = principal.getUsername();
         return ResponseEntity.ok(
-            service.getByReviewerUsername(username)
+                initiativeService.getByReviewerUsername(
+                        principal.getUsername()
+                )
         );
     }
-
-
 }

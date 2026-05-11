@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, NavLink, Link } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, NavLink, Link, useNavigate } from "react-router-dom";
 import { useState, useEffect, useMemo } from "react";
 import api from "./api";
 
@@ -20,13 +20,24 @@ import InitiativesList from "./components/InitiativesList";
 
 import "./App.css";
 
-function App() {
+// ✅ App just provides Router
+export default function App() {
+  return (
+    <Router>
+      <AppContent />
+    </Router>
+  );
+}
+
+function AppContent() {
+  const navigate = useNavigate();
+
   const [user, setUser] = useState(null); // { username, role }
-  const [ideas, setIdeas] = useState([]); // store ideas for metrics + chart
+  const [ideas, setIdeas] = useState([]);
   const [chartData, setChartData] = useState([]);
   const [loadingIdeas, setLoadingIdeas] = useState(false);
 
-  // restore user from localStorage
+  // ✅ restore user from localStorage on refresh
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
@@ -39,7 +50,7 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (!user) return;  
+    if (!user) return;
     fetchIdeasForHome();
   }, [user]);
 
@@ -47,14 +58,11 @@ function App() {
     setLoadingIdeas(true);
     try {
       const res = await api.get("/ideas");
-
-      // backend may return Page {content:[...]} OR plain array [...]
       const data = res.data;
       const list = Array.isArray(data) ? data : data?.content ?? [];
 
       setIdeas(list);
 
-      // Build chart data: ideas count per day (like "Apr 1", "Apr 8", etc.)
       const grouped = list.reduce((acc, item) => {
         const createdAt = item.createdAt || item.created_at || item.created_on;
         if (!createdAt) return acc;
@@ -73,7 +81,6 @@ function App() {
         count: grouped[key],
       }));
 
-      // sort labels by actual date order (best-effort)
       graph.sort((a, b) => {
         const da = new Date(a.date + " 2026");
         const db = new Date(b.date + " 2026");
@@ -96,28 +103,34 @@ function App() {
     localStorage.setItem("user", JSON.stringify(nextUser));
   };
 
+  // ✅ Logout clears auth AND redirects to home
   const handleLogout = () => {
     setUser(null);
     localStorage.removeItem("user");
+    localStorage.removeItem("auth");
+    localStorage.removeItem("isAuthenticated");
+    localStorage.removeItem("role");
+    localStorage.removeItem("username");
+
+    navigate("/", { replace: true });
   };
 
   const navItems = [
     { to: "/", label: "Home" },
     { to: "/initiatives", label: "Initiatives" },
-    { to: "/ideas", label: "Ideas" }
+    { to: "/ideas", label: "Ideas" },
   ];
 
   const normalizedRole = user?.role?.toString().toUpperCase();
-const roleAction = normalizedRole
-  ? normalizedRole === "ADMIN"
-    ? { to: "/admin-dashboard", label: "Admin Dashboard" }
-    : normalizedRole === "REVIEWER"
-    ? { to: "/reviewer-dashboard", label: "Review Dashboard" }
-    : { to: "/my-ideas", label: "My Ideas" }
-  : null;
 
+  const roleAction = normalizedRole
+    ? normalizedRole === "ADMIN"
+      ? { to: "/admin-dashboard", label: "Admin Dashboard" }
+      : normalizedRole === "REVIEWER"
+      ? { to: "/reviewer-dashboard", label: "Review Dashboard" }
+      : { to: "/my-ideas", label: "My Ideas" }
+    : null;
 
-  // metrics derived from ideas list (instead of hard-coded)
   const metrics = useMemo(() => {
     const totalIdeas = ideas.length;
     const underReview = ideas.filter((i) => i.status === "UNDER_REVIEW").length;
@@ -125,101 +138,93 @@ const roleAction = normalizedRole
     const open = ideas.filter((i) => i.status === "OPEN").length;
 
     return {
-      activeInitiatives: 24, // keep static unless you have initiatives endpoint
+      activeInitiatives: 24,
       ideasSubmitted: totalIdeas,
       underReview,
-      winnersPublished: accepted, // you can rename later
+      winnersPublished: accepted,
       open,
     };
   }, [ideas]);
 
   return (
-    <Router>
-      <div className="app-shell app-dark">
-        <header className="topbar-dark">
-          <div className="topbar-brand">
-            <div className="brand-icon">💡</div>
-            <div className="brand-copy">
-              <span className="brand-name">Initiative Tracker</span>
-              <span className="brand-tagline">
-                Manage initiatives, spark innovation, and win faster.
-              </span>
-            </div>
+    <div className="app-shell app-dark">
+      <header className="topbar-dark">
+        <div className="topbar-brand">
+          <div className="brand-icon">💡</div>
+          <div className="brand-copy">
+            <span className="brand-name">Initiative Tracker</span>
+            <span className="brand-tagline">
+              Manage initiatives, spark innovation, and win faster.
+            </span>
           </div>
+        </div>
 
-          <nav className="topbar-nav">
-            {navItems.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                className={({ isActive }) => `topbar-link${isActive ? " active" : ""}`}
-              >
-                {item.label}
-              </NavLink>
-            ))}
-          </nav>
+        <nav className="topbar-nav">
+          {navItems.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className={({ isActive }) => `topbar-link${isActive ? " active" : ""}`}
+            >
+              {item.label}
+            </NavLink>
+          ))}
+        </nav>
 
-          <div className="topbar-actions">
-            {/* user--Submit Idea */}
-          {normalizedRole !== "ADMIN" && normalizedRole !== "REVIEWER" && (
+        <div className="topbar-actions">
+          {/* USER only */}
+          {normalizedRole !== "ADMIN" && normalizedRole !== "REVIEWER" && user && (
             <Link to="/create-idea" className="btn-primary btn-cta">
               Submit Idea
             </Link>
           )}
 
-          {/* admin only--Create Initiative */}
-          {normalizedRole === "ADMIN" && (
+          {/* ADMIN only */}
+          {normalizedRole === "ADMIN" && user && (
             <Link to="/create-initiative" className="btn-primary btn-cta">
               Create Initiative
             </Link>
           )}
 
-            {user ? (
-              <>
-                {roleAction && (
-                  <Link to={roleAction.to} className="btn-primary btn-hero">
-                    {roleAction.label}
-                  </Link>
-                )}
-                <Link to="/profile" className="user-chip user-chip-dark">
-                  {user.username} ({user.role})
+          {user ? (
+            <>
+              {roleAction && (
+                <Link to={roleAction.to} className="btn-primary btn-hero">
+                  {roleAction.label}
                 </Link>
-                <button className="btn-primary btn-hero" onClick={handleLogout}>
-                  Logout
-                </button>
-              </>
-            ) : (
-              <Link to="/login" className="btn-primary btn-hero">
-                Login
+              )}
+              <Link to="/profile" className="user-chip user-chip-dark">
+                {user.username} ({user.role})
               </Link>
-            )}
-          </div>
-        </header>
+              <button className="btn-primary btn-hero" onClick={handleLogout}>
+                Logout
+              </button>
+            </>
+          ) : (
+            <Link to="/login" className="btn-primary btn-hero">
+              Login
+            </Link>
+          )}
+        </div>
+      </header>
 
-        <main className="main-content home-page">
-          <Routes>
-            <Route
-              path="/"
-              element={
-                <Home
-                  metrics={metrics}
-                  chartData={chartData}
-                  loadingIdeas={loadingIdeas}
-                />
-              }
-            />
+      <main className="main-content home-page">
+        <Routes>
+          <Route
+            path="/"
+            element={<Home metrics={metrics} chartData={chartData} loadingIdeas={loadingIdeas} />}
+          />
+
           <Route
             path="/initiatives"
             element={
-              normalizedRole === "ADMIN" ? (
-                <RequireAuth user={user}>
+              <RequireAuth user={user}>
+                {normalizedRole === "ADMIN" ? (
                   <AdminInitiatives />
-                </RequireAuth>
-              ) : (
-                <RequireAuth user={user}>
+                ) : (
                   <InitiativesList userRole={normalizedRole} />
-                </RequireAuth>
-              )
+                )}
+              </RequireAuth>
             }
           />
 
@@ -231,52 +236,66 @@ const roleAction = normalizedRole
               </RequireAuth>
             }
           />
-            <Route path="/ideas" element={<IdeaList title="Ideas" userRole={user?.role} />} />
-            <Route
-              path="/competitions"
-              element={
-                <Home
-                  metrics={metrics}
-                  chartData={chartData}
-                  loadingIdeas={loadingIdeas}
-                />
-              }
-            />
 
-            <Route
-          path="/create-idea"
-          element={
-            <RequireAuth user={user}>
-              <CreateIdeaForm />
-            </RequireAuth>
-          }
+          <Route path="/ideas" element={<IdeaList title="Ideas" userRole={user?.role} />} />
+          <Route path="/ideas/:id" element={<IdeaDetail />} />
+
+          <Route
+            path="/create-idea"
+            element={
+              <RequireAuth user={user}>
+                <CreateIdeaForm />
+              </RequireAuth>
+            }
           />
 
-            <Route path="/my-ideas" element={<IdeaList title="My Ideas" userRole={user?.role} />} />
-            <Route path="/ideas/:id" element={<IdeaDetail />} />
-            <Route path="/profile" element={<Profile />} />
+          <Route path="/my-ideas" element={<IdeaList title="My Ideas" userRole={user?.role} />} />
+          <Route path="/profile" element={<Profile />} />
 
-            <Route path="/login" element={<Login onLogin={handleLogin} title="Login" />} />
-            <Route path="/signup" element={<Signup />} />
+          <Route path="/login" element={<Login onLogin={handleLogin} title="Login" />} />
+          <Route path="/signup" element={<Signup />} />
 
-            <Route path="/admin" element={<Login onLogin={handleLogin} title="Admin Login" />} />
-            <Route path="/reviewer" element={<Login onLogin={handleLogin} title="Reviewer Login" />} />
+          <Route path="/admin" element={<Login onLogin={handleLogin} title="Admin Login" />} />
+          <Route path="/reviewer" element={<Login onLogin={handleLogin} title="Reviewer Login" />} />
 
-            <Route path="/create-initiative" element={<CreateInitiative />} />
-            <Route path="/assign-reviewers" element={<AssignReviewers />} />
-            <Route path="/reviewer-dashboard" element={<ReviewerDashboard />} />
-            <Route
-              path="/admin-dashboard"
-              element={
-                <RequireAuth user={user}>
-                  <AdminDashboard />
-                </RequireAuth>
-              }
-            />
-          </Routes>
-        </main>
-      </div>
-    </Router>
+          <Route
+            path="/create-initiative"
+            element={
+              <RequireAuth user={user}>
+                <CreateInitiative />
+              </RequireAuth>
+            }
+          />
+
+          <Route
+            path="/assign-reviewers"
+            element={
+              <RequireAuth user={user}>
+                <AssignReviewers />
+              </RequireAuth>
+            }
+          />
+
+          <Route
+            path="/reviewer-dashboard"
+            element={
+              <RequireAuth user={user}>
+                <ReviewerDashboard />
+              </RequireAuth>
+            }
+          />
+
+          <Route
+            path="/admin-dashboard"
+            element={
+              <RequireAuth user={user}>
+                <AdminDashboard />
+              </RequireAuth>
+            }
+          />
+        </Routes>
+      </main>
+    </div>
   );
 }
 
@@ -298,7 +317,6 @@ function Home({ metrics, chartData, loadingIdeas }) {
             <Link to="/create-idea" className="btn-primary btn-hero">
               Submit Idea
             </Link>
-            
           </div>
         </div>
 
@@ -387,5 +405,3 @@ function Home({ metrics, chartData, loadingIdeas }) {
     </div>
   );
 }
-
-export default App;

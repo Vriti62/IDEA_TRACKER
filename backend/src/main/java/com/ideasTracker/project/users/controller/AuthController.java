@@ -56,15 +56,6 @@ public ResponseEntity<?> login(@RequestBody UserLogin request) {
         )
     );
 }
-
-    //temp
-    @PostMapping("/debug-hash")
-public ResponseEntity<?> debugHash() {
-    String hash = passwordEncoder.encode("password");
-    boolean matches = passwordEncoder.matches("password", hash);
-    return ResponseEntity.ok(Map.of("hash", hash, "matches", matches));
-}
-
 }
 
 
