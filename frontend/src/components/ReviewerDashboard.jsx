@@ -14,7 +14,6 @@ export default function ReviewerDashboard() {
   const [msgById, setMsgById] = useState({});
   const [reviewsByIdea, setReviewsByIdea] = useState({}); // { [ideaId]: ReviewResponse[] }
 
-  // ✅ AI visibility is controlled ONLY by button click (per idea)
   const [showAIById, setShowAIById] = useState({}); // { [ideaId]: true/false }
 
   useEffect(() => {
@@ -49,12 +48,12 @@ const fetchAssignedIdeas = async () => {
       setShowAIById((prev) => ({ ...prev, [id]: true }));
 
       await api.post(`/ideas/${id}/analyze`);
-      setMsgById((prev) => ({ ...prev, [id]: "✅ AI analysis complete" }));
+      setMsgById((prev) => ({ ...prev, [id]: " AI analysis complete" }));
 
       await fetchAssignedIdeas(); // refresh so aiSummary updates
     } catch (e) {
       console.error(e);
-      setMsgById((prev) => ({ ...prev, [id]: "❌ AI analysis failed" }));
+      setMsgById((prev) => ({ ...prev, [id]: " AI analysis failed" }));
       // keep showAIById true so user sees error or "Analyzing..." if you want
     }
   };
@@ -64,21 +63,21 @@ const fetchAssignedIdeas = async () => {
     const comment = (commentById[id] || "").trim();
 
     if (!score || score < 1 || score > 10) {
-      setMsgById((prev) => ({ ...prev, [id]: "❌ Score must be between 1 and 10" }));
+      setMsgById((prev) => ({ ...prev, [id]: " Score must be between 1 and 10" }));
       return;
     }
     if (!comment) {
-      setMsgById((prev) => ({ ...prev, [id]: "❌ Comment is required" }));
+      setMsgById((prev) => ({ ...prev, [id]: " Comment is required" }));
       return;
     }
 
     try {
       await api.post(`/ideas/${id}/review`, { score, comment });
-      setMsgById((prev) => ({ ...prev, [id]: "✅ Review submitted" }));
+      setMsgById((prev) => ({ ...prev, [id]: " Review submitted" }));
       await fetchReviews(id);
     } catch (e) {
       console.error(e);
-      setMsgById((prev) => ({ ...prev, [id]: "❌ Review submit failed" }));
+      setMsgById((prev) => ({ ...prev, [id]: " Review submit failed" }));
     }
   };
 
@@ -139,7 +138,7 @@ const fetchAssignedIdeas = async () => {
                       const next = open ? null : idea.id;
                       setExpandedId(next);
 
-                      // ✅ optional: reset AI visibility when opening a different idea
+                     
                       if (!open) {
                         setShowAIById((prev) => ({ ...prev, [idea.id]: false }));
                         await fetchReviews(idea.id);
@@ -166,7 +165,7 @@ const fetchAssignedIdeas = async () => {
                         </p>
                       )}
 
-                      {/* ✅ AI Insight — ONLY when button clicked */}
+                      
                       {showAI && (
                         <div className="ai-summary-card">
                           <strong>AI Insight</strong>
