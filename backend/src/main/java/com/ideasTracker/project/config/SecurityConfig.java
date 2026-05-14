@@ -23,25 +23,24 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .cors(Customizer.withDefaults())
 .authorizeHttpRequests(auth -> auth
-
     // Public
     .requestMatchers("/api/auth/**").permitAll()
+
+    // Ideas
     .requestMatchers(HttpMethod.GET, "/api/ideas/**").permitAll()
-
-    //  REVIEWER
-    .requestMatchers(HttpMethod.GET, "/api/initiatives/my").hasRole("REVIEWER")
-    .requestMatchers(HttpMethod.GET, "/api/initiatives/*/ideas").hasAnyRole("ADMIN", "REVIEWER")
+    .requestMatchers(HttpMethod.POST, "/api/ideas").hasAnyRole("USER", "ADMIN")
+    .requestMatchers(HttpMethod.POST, "/api/ideas/parse-excel").hasAnyRole("USER", "ADMIN")
+    .requestMatchers(HttpMethod.GET, "/api/ideas/*/export-excel").hasAnyRole("USER","REVIEWER","ADMIN")
     .requestMatchers(HttpMethod.POST, "/api/ideas/*/analyze").hasRole("REVIEWER")
+    .requestMatchers(HttpMethod.PATCH, "/api/ideas/**").hasRole("ADMIN")
 
-    //  ADMIN
-    .requestMatchers(HttpMethod.GET, "/api/initiatives").hasRole("ADMIN")
+    // Initiatives
+    .requestMatchers(HttpMethod.GET, "/api/initiatives/**").hasAnyRole("USER","REVIEWER","ADMIN")
     .requestMatchers(HttpMethod.POST, "/api/initiatives/**").hasRole("ADMIN")
     .requestMatchers(HttpMethod.PATCH, "/api/initiatives/**").hasRole("ADMIN")
 
-    
-    .requestMatchers(HttpMethod.GET, "/api/initiatives/**").authenticated()
-
     .anyRequest().authenticated()
+
 )
 
 

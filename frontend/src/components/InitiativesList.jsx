@@ -56,7 +56,7 @@ export default function InitiativesList({ userRole }) {
               </div>
 
               {/* USER CTA */}
-              {userRole === "USER" && (
+              {userRole === "USER" && 'ADMIN' (
                 <div className="initiative-actions">
                   <button
                     className="btn-secondary btn-small"

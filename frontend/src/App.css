@@ -1065,7 +1065,7 @@
 }
 
 .muted {
-  color: rgba(15, 23, 42, 0.6);
+  color: rgb(243, 245, 249);
 }
 
 .initiative-card {
@@ -1100,7 +1100,7 @@
   gap: 1rem;
   padding: 1rem 1rem;
   border-radius: 18px;
-  background: #f8fafc;
+  background: #4cb0f7;
   border: 1px solid rgba(148, 163, 184, 0.18);
 }
 
@@ -1117,7 +1117,7 @@
 }
 
 .score-pill {
-  background: rgba(59, 130, 246, 0.12);
+  background: rgba(199, 208, 222, 0.624);
   color: #1d4ed8;
   padding: 0.55rem 0.85rem;
   border-radius: 999px;
@@ -2088,7 +2088,7 @@ button.btn-primary,
 /* Buttons row */
 .modal-actions {
   display: flex;
-  justify-content: flex-end;   /* ✅ buttons on right */
+  justify-content: flex-end; 
   gap: 10px;
   margin-top: 18px;
 }
@@ -2107,4 +2107,208 @@ button.btn-primary,
   padding: 10px 18px;
   border-radius: 999px;
   font-weight: 700;
+}
+.review-card {
+  background: #f8f9fb;
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 10px;
+}
+
+.review-comment {
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.review-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  margin-top: 6px;
+  color: #666;
+}
+
+.review-date {
+  font-size: 0.7rem;
+  color: #999;
+  margin-top: 4px;
+}
+
+
+/* ===== Initiative Group (Accordion) =====/* 
+===== Initiative: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 18px 22px;
+  cursor: pointer;
+  background: linear-gradient(
+    135deg,
+    rgba(255,255,255,0.12),
+    rgba(255,255,255,0.04)
+  );
+
+  border-radius: 16px;
+  transition: background 0.25s ease;
+} */
+
+.initiative-group-header:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.initiative-group-title h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.initiative-group-title p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.initiative-group-chevron {
+  font-size: 20px;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+/* ===== Initiative Body ===== */
+
+.initiative-group-body {
+  padding: 18px;
+}
+
+/* ===== Idea Card (inside Initiative) ===== */
+
+.initiative-group-body .idea-card {
+  background: #8da2d9;
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin-bottom: 14px;
+
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
+}
+
+.idea-card:last-child {
+  margin-bottom: 0;
+}
+
+/* Header */
+.idea-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  cursor: pointer;
+}
+
+.idea-card-title h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.idea-card-title p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #080c15;
+}
+
+/* Expanded body */
+.idea-card-body {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #111c31;
+}
+
+.idea-card-body p {
+  font-size: 14px;
+  color: #0a111c;
+  margin-bottom: 10px;
+}
+
+/* ===== Actions ===== */
+
+.idea-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+/* ===== AI Insight ===== */
+
+.ai-summary-card {
+  margin-top: 16px;
+  padding: 14px;
+  border-radius: 12px;
+
+  background: #548bc2;
+  border: 1px dashed #c7d2fe;
+}
+
+.ai-summary-card strong {
+  display: block;
+  margin-bottom: 8px;
+  color: #07041f;
+}
+
+.ai-summary-text {
+  font-size: 14px;
+  color: #1f2937;
+  line-height: 1.5;
+}
+
+/* ===== Status Badge ===== */
+
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-open {
+  background: #e0f2fe;
+  color: #081922;
+}
+
+.status-under-review {
+  background: #fef3c7;
+  color: #221208;
+}
+
+.status-accepted {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.initiative-group {
+  margin-bottom: 24px;
+  border-radius: 16px;
+  background: rgba(134, 171, 227, 0.04);
+  backdrop-filter: blur(6px);
+  overflow: hidden;
+}
+
+/* Initiative header */
+.initiative-group-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 18px 22px;
+  cursor: pointer;
+  background: linear-gradient(
+    135deg,
+    rgba(255,255,255,0.12),
+    rgba(255,255,255,0.04)
+  );
+
+  border-radius: 16px;
+  transition: background 0.25s ease;
 }

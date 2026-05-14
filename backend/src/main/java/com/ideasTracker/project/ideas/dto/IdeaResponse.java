@@ -22,27 +22,47 @@ public class IdeaResponse {
     private String potentialSolution;
     private Status status;
     private String aiSummary;
+    private Long initiativeId;
+    private String initiativeTitle;
     private String createdByUsername;
     private Instant createdAt;
     private Instant updatedAt;
 
 
- public static IdeaResponse from(Idea idea) {
-        return IdeaResponse.builder()
-                .id(idea.getId())
-                .title(idea.getTitle())
-                .problemStatement(idea.getProblemStatement())
-                .potentialSolution(idea.getPotentialSolution())
-                .status(idea.getStatus())
-                .aiSummary(idea.getAiSummary())
-                .createdByUsername(
-                        idea.getCreatedBy() != null
-                                ? idea.getCreatedBy().getUsername()
-                                : null
-                )
-                .createdAt(idea.getCreatedAt())   
-                .updatedAt(idea.getUpdatedAt())   
-                .build();
+public static IdeaResponse from(Idea idea) {
+    IdeaResponse res = new IdeaResponse();
+
+    res.setId(idea.getId());
+    res.setTitle(idea.getTitle());
+    res.setProblemStatement(idea.getProblemStatement());
+    res.setPotentialSolution(idea.getPotentialSolution());
+    res.setStatus(idea.getStatus());
+    
+    
+    if (idea.getInitiative() != null) {
+        res.setInitiativeId(idea.getInitiative().getId());
+        res.setInitiativeTitle(idea.getInitiative().getTitle());
+    } else {
+        res.setInitiativeId(null);
+        res.setInitiativeTitle(null);
     }
 
+
+    res.setCreatedAt(idea.getCreatedAt());
+    res.setUpdatedAt(idea.getUpdatedAt());
+
+    res.setCreatedByUsername(
+        idea.getCreatedBy() != null
+            ? idea.getCreatedBy().getUsername()
+            : "Anonymous"
+    );
+
+      res.setInitiativeTitle(
+        idea.getInitiative() != null
+            ? idea.getInitiative().getTitle()
+            : "-"
+    );
+
+    return res;
+}
 }

@@ -20,7 +20,7 @@ public class IdeaCreateRequest {
     private String problemStatement;
     private String potentialSolution;
     @NotNull
-        private Long initiativeId;
+    private Long initiativeId;
 
 
 }

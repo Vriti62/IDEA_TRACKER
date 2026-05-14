@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import api from "../api";
-import ReactMarkdown from "react-markdown";
+// import ReactMarkdown from "react-markdown";
 
 export default function IdeaDetail() {
   const { id } = useParams();
@@ -60,7 +60,11 @@ export default function IdeaDetail() {
             <div className="detail-metadata">
               <div>
                 <span className="detail-label">Posted by</span>
-                <p>{idea.createdBy || idea.createdByName || "Anonymous"}</p>
+                <p>{ idea.createdByUsername}</p>
+              </div>
+              <div>
+                <span className="detail-label">Initiative</span>
+                <p>{idea.initiativeTitle}</p>
               </div>
               <div>
                 <span className="detail-label">Created</span>
@@ -95,7 +99,41 @@ export default function IdeaDetail() {
           <aside className="detail-sidebar-card">
             <div className="detail-sidebar-block">
               <h3>Review history</h3>
-              <p className="muted">No reviewer scores are available yet. As reviewers submit their feedback, this area will show scores, comments, and reviewer names.</p>
+             <div className="detail-sidebar-block">
+              <h3>Review history</h3>
+
+                {idea.reviews && idea.reviews.length > 0 ? (
+                  <div className="review-list">
+                    {idea.reviews.map((review, index) => (
+                      <div key={index} className="review-card">
+                        <p className="review-comment">
+                          {review.comment || "No comment provided."}
+                        </p>
+
+                        <div className="review-meta">
+                          <span className="reviewer-name">
+                            — {review.reviewerName || "Reviewer"}
+                          </span>
+
+                          {review.score !== null && review.score !== undefined && (
+                            <span className="review-score">
+                              ⭐ {review.score}/5
+                            </span>
+                          )}
+                        </div>
+
+                        {review.reviewedAt && (
+                          <div className="review-date">
+                            {formatDate(review.reviewedAt)}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="muted">No reviews submitted yet.</p>
+                )}
+</div>
             </div>
 
             <div className="detail-sidebar-block">

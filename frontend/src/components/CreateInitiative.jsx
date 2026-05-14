@@ -2,13 +2,26 @@ import { useState } from "react";
 import api from "../api";
 import "../App.css";
 
+const parseError = (e, fallback) => {
+  const d = e?.response?.data;
+  if (!d) return fallback;
+  if (typeof d === "string") return d;
+  if (typeof d === "object")
+    return d.message || d.error || JSON.stringify(d);
+  return fallback;
+};
+
 export default function CreateInitiative() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+
   const [excelLoading, setExcelLoading] = useState(false);
+  const [excelSuccess, setExcelSuccess] = useState("");
+  const [excelError, setExcelError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -31,39 +44,45 @@ export default function CreateInitiative() {
       setTitle("");
       setDescription("");
     } catch (e) {
-      setErrorMsg("Something went wrong while creating initiative.", e);
+      setErrorMsg(
+        parseError(e, "Something went wrong while creating initiative.")
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  //excel
+
   const handleInitiativeExcelUpload = async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-  const formData = new FormData();
-  formData.append("file", file);
+    const formData = new FormData();
+    formData.append("file", file);
 
-  setExcelLoading(true);
-  setErrorMsg("");
-  try {
-    const res = await api.post("/initiatives/parse-excel", formData, {
-      headers: { "Content-Type": "multipart/form-data" }
-    });
+    setExcelLoading(true);
+    setExcelError("");
+    setExcelSuccess("");
 
-    const data = res.data;
+    try {
+      await api.post("/initiatives/parse-excel", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
-    // autofill fields
-    setTitle(data.title || "");
-    setDescription(data.description || "");
-  } catch (e) {
-    setErrorMsg("Failed to read Excel file.",e);
-  } finally {
-    setExcelLoading(false);
+      setExcelSuccess("Initiatives uploaded successfully via Excel!");
+    } catch (e) {
+      setExcelError(
+        parseError(e, "Failed to upload initiatives Excel.")
+      );
+    } finally {
+      setExcelLoading(false);
+      e.target.value = "";
+    }
   }
-};
 
+  // =========================
+  // UI
+  // =========================
   return (
     <div className="login-overlay">
       <div className="login-glass-card form-glass-large">
@@ -72,18 +91,23 @@ export default function CreateInitiative() {
           Define an initiative to collect and evaluate ideas.
         </p>
 
+       
+        <div className="login-field">
+          <label>Upload Initiatives via Excel (.xlsx)</label>
+          <input
+            type="file"
+            accept=".xlsx"
+            onChange={handleInitiativeExcelUpload}
+          />
+          {excelLoading && <small>Uploading & processing Excel…</small>}
+        </div>
+
+        {excelSuccess && <p className="login-success">{excelSuccess}</p>}
+        {excelError && <p className="login-error">{excelError}</p>}
+
+       
         <form onSubmit={handleSubmit}>
           <div className="login-field">
-
-            
-          <label>Upload Initiative via Excel (.xlsx)</label>
-            <input
-              type="file"
-              accept=".xlsx"
-              onChange={handleInitiativeExcelUpload}
-            />
-            {excelLoading && <small>Reading Excel…</small>}
-
             <label>Title *</label>
             <input
               value={title}
@@ -112,4 +136,5 @@ export default function CreateInitiative() {
       </div>
     </div>
   );
-}
+  
+};

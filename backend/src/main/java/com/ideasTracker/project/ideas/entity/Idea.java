@@ -1,13 +1,17 @@
 package com.ideasTracker.project.ideas.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.ideasTracker.project.Initiative.entity.Initiative;
 import com.ideasTracker.project.enums.Status;
 import com.ideasTracker.project.ideas.dto.IdeaResponse;
+import com.ideasTracker.project.reviewIdeas.entity.IdeaReview;
 import com.ideasTracker.project.users.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "ideas")
@@ -55,10 +59,14 @@ public class Idea {
 
     @PrePersist
     protected void onCreate() {
-        createdAt = Instant.now();
-        updatedAt = Instant.now();
-        status = Status.OPEN;
+       if (createdAt == null) createdAt = Instant.now();
     }
+
+
+    
+    @OneToMany(mappedBy = "idea", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<IdeaReview> reviews = new ArrayList<>();
 
     @PreUpdate
     protected void onUpdate() {
@@ -69,21 +77,4 @@ public class Idea {
         return this.potentialSolution = potentialSolution;
     }
 
-    public static IdeaResponse from(Idea idea) {
-    return IdeaResponse.builder()
-            .id(idea.getId())
-            .title(idea.getTitle())
-            .problemStatement(idea.getProblemStatement())
-            .potentialSolution(idea.getPotentialSolution())
-            .status(idea.getStatus())
-            .aiSummary(idea.getAiSummary())
-            .createdByUsername(
-                    idea.getCreatedBy() != null
-                        ? idea.getCreatedBy().getUsername()
-                        : null
-            )
-            .createdAt(idea.getCreatedAt())   
-            .updatedAt(idea.getUpdatedAt())   
-            .build();
-}
 }
